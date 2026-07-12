@@ -7,7 +7,10 @@ from app.schemas.battery import BatteryCreate
 class BatteryService:
 
     @staticmethod
-    def create_battery(db: Session, battery: BatteryCreate):
+    def create_battery(
+        db: Session,
+        battery: BatteryCreate,
+    ):
 
         db_battery = Battery(**battery.model_dump())
 
