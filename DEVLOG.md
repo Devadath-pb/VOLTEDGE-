@@ -1,12 +1,8 @@
 # ⚡ VoltEdge Development Log
 
-> This document tracks the development progress of VoltEdge.
-> Every completed feature is recorded here along with major decisions,
-> challenges, and the next planned task.
+> Tracks the development progress of VoltEdge.
 
 ---
-
-# Project Timeline
 
 ## v0.1.0 - Project Foundation
 
@@ -18,40 +14,23 @@
 - Created GitHub repository
 - Configured Python virtual environment
 - Installed PostgreSQL
-- Connected FastAPI to PostgreSQL
+- Connected FastAPI with PostgreSQL
 - Configured SQLAlchemy
-- Created project folder structure
-- Created Battery SQLAlchemy model
-- Generated `batteries` table
-- Fixed nested Git repository issue
-- Published initial repository
+- Created Battery model
+- Generated batteries table
+- Implemented Battery Registration API
+- Successfully stored first battery in PostgreSQL
 
-### Decisions
+### Bugs Fixed
 
-- Python 3.11 selected for compatibility.
-- PostgreSQL chosen over SQLite.
-- FastAPI selected as backend framework.
-- SQLAlchemy 2.0 style adopted.
-- Feature-first development approach.
-- Build folders only when required.
-- Every feature ends with Test → Commit → Push.
+- Fixed `.env` loading issue
+- Fixed nested Git repository
+- Fixed SQLAlchemy table registration
+- Added duplicate serial number validation
 
-### Challenges
+### Next
 
-- `.env` loading issue
-- Nested Git repository (`backend/.git`)
-- SQLAlchemy table registration
-
-### Lessons Learned
-
-- Always verify the working directory before running Git commands.
-- Import models before calling `Base.metadata.create_all()`.
-- Use absolute paths for configuration when appropriate.
-
-### Next Sprint
-
-- Battery Registration API
 - GET /batteries
 - GET /batteries/{id}
-
----
+- Update Battery
+- Delete Battery
