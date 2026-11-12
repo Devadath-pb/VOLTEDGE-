@@ -5,6 +5,7 @@
 #include "sensor_manager.h"
 #include "wifi_manager.h"
 #include "api_manager.h"
+#include "ota_manager.h"
 #include "models.h"
 
 // ===========================
@@ -88,6 +89,9 @@ void loop()
 {
     // Keep WiFi alive
     wifiLoop();
+
+    // Service password-protected local-network OTA updates.
+    otaLoop();
 
     // Check Button Inputs & Handle State Transitions
     if (checkButtonPressed())

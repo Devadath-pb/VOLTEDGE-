@@ -16,6 +16,15 @@ VoltEdge is an intelligent battery monitoring and predictive analytics platform 
 - Performance Reports
 - Interactive Dashboard
 - ESP32 Integration
+
+### ESP32 OTA updates
+
+The ESP32-C3 firmware supports password-protected OTA updates over the same
+local Wi-Fi network after the first USB flash. The device advertises a
+hostname such as `voltedge-A1B2C3` in Arduino IDE's network ports. OTA uses the
+per-device `DEVICE_KEY` by default; define `VOLTEDGE_OTA_PASSWORD` in the local
+ignored `secrets.h` if a separate password is preferred. Do not expose
+ArduinoOTA directly to the public internet.
 - PostgreSQL Database
 - REST API using FastAPI
 
