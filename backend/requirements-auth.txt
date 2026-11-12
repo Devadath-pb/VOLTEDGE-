@@ -1,0 +1,2 @@
+# Authentication dependency for Supabase JWT validation.
+PyJWT==2.10.1

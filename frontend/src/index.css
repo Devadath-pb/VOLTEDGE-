@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --volt-primary: #16A34A;
+  --volt-dark: #14532D;
+  --volt-bright: #22C55E;
+  --volt-mint: #DCFCE7;
+  --volt-lightmint: #F0FDF4;
+  --volt-bg: #F7FBF8;
+  --volt-ink: #102A22;
+  --volt-muted: #64748B;
+}
+
+html, body, #root { height: 100%; }
+
+body {
+  @apply bg-pagebg text-ink font-sans antialiased;
+  background-image:
+    radial-gradient(1100px 500px at 85% -10%, rgba(34, 197, 94, 0.10), transparent 60%),
+    radial-gradient(900px 420px at -10% 20%, rgba(22, 163, 74, 0.07), transparent 55%);
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/70 backdrop-blur-[16px] border border-white/80 rounded-glass shadow-glass;
+  }
+  .glass-strong {
+    @apply bg-white/85 backdrop-blur-xl border border-white/90 rounded-glass shadow-glass;
+  }
+  .glass-nav {
+    @apply bg-white/75 backdrop-blur-[16px] border border-white/80 shadow-glass;
+  }
+  .glass-hover {
+    @apply transition-all duration-300 hover:shadow-glass-lg hover:-translate-y-0.5;
+  }
+  .pill-active {
+    @apply bg-primary text-white shadow-md shadow-primary/30;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white
+      shadow-lg shadow-primary/30 transition-all duration-300 hover:bg-darkgreen hover:shadow-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-primary/25 bg-white/70 px-6 py-3 text-sm font-semibold text-darkgreen
+      backdrop-blur transition-all duration-300 hover:border-primary/50 hover:bg-mint focus:outline-none focus:ring-2 focus:ring-primary/40;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
+  }
+  .label-caps {
+    @apply text-[11px] font-bold uppercase tracking-[0.18em] text-primary;
+  }
+  .input-glass {
+    @apply w-full rounded-xl border border-white/80 bg-white/70 px-4 py-2.5 text-sm text-ink shadow-sm backdrop-blur
+      placeholder:text-muted/70 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/25;
+  }
+  .skeleton {
+    @apply animate-pulse rounded-xl bg-mint/70;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(22,163,74,.25); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(22,163,74,.4); }
+
+/* Smooth recharts polish */
+.recharts-surface { overflow: visible; }
+.recharts-default-legend { font-size: 12px !important; }
+
+/* Battery charge animation */
+@keyframes volt-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.volt-live-dot { animation: volt-pulse 1.6s ease-in-out infinite; }

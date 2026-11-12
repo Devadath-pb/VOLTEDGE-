@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <WiFi.h>
 
 #include "config.h"
@@ -8,7 +9,13 @@ bool wifiConnect()
 {
     Serial.println("Connecting to WiFi...");
 
+    WiFi.disconnect(true, true);   // Clear previous connection
+    delay(500);
+
     WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(true);
+    WiFi.persistent(false);
+
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
     unsigned long start = millis();
@@ -18,12 +25,14 @@ bool wifiConnect()
         ledWifiConnecting();
 
         delay(500);
-
         Serial.print(".");
 
         if (millis() - start > 15000)
         {
             Serial.println("\nWiFi Timeout");
+
+            Serial.print("WiFi Status: ");
+            Serial.println(WiFi.status());
 
             return false;
         }
@@ -31,6 +40,12 @@ bool wifiConnect()
 
     Serial.println();
     Serial.println("WiFi Connected");
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
+
+    Serial.print("RSSI: ");
+    Serial.print(WiFi.RSSI());
+    Serial.println(" dBm");
 
     ledOff();
 
@@ -49,7 +64,7 @@ void wifiLoop()
 
     lastAttempt = millis();
 
-    Serial.println("WiFi Lost... Reconnecting");
+    Serial.println("WiFi Lost... Reconnecting...");
 
     wifiConnect();
 }

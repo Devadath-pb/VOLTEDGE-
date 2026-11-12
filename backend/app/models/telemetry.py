@@ -20,14 +20,30 @@ class Telemetry(Base):
     session_id = Column(
         UUID(as_uuid=True),
         ForeignKey("monitoring_sessions.id"),
-        nullable=False
+        nullable=True
     )
+
+    battery_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("batteries.battery_id"),
+        nullable=True
+    )
+
+    cycle_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("battery_cycles.id"),
+        nullable=True
+    )
+
+    phase = Column(String(50), nullable=True)
 
     voltage = Column(Float, nullable=False)
 
     current = Column(Float, nullable=False)
 
     power = Column(Float, nullable=False)
+
+    energy_wh = Column(Float, nullable=True)
 
     temperature = Column(Float)
 
@@ -44,5 +60,10 @@ class Telemetry(Base):
 
     monitoring_session = relationship(
         "MonitoringSession",
+        back_populates="telemetry"
+    )
+
+    cycle = relationship(
+        "BatteryCycle",
         back_populates="telemetry"
     )

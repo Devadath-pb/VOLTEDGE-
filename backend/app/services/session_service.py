@@ -10,6 +10,7 @@ from app.models.monitoring_session import (
     MonitoringSessionStatus,
 )
 from app.schemas.monitoring_session import MonitoringSessionStart
+from app.services.capacity_service import CapacityService
 
 
 class SessionService:
@@ -23,6 +24,24 @@ class SessionService:
             .order_by(MonitoringSession.start_time.desc())
             .all()
         )
+
+    @staticmethod
+    def get_session_by_id(db: Session, session_id: UUID):
+        """Return a single monitoring session by ID."""
+
+        session = (
+            db.query(MonitoringSession)
+            .filter(MonitoringSession.id == session_id)
+            .first()
+        )
+
+        if session is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Monitoring session not found",
+            )
+
+        return session
 
     @staticmethod
     def get_sessions_by_battery(
@@ -79,10 +98,13 @@ class SessionService:
         for active_session in active_sessions:
             active_session.status = MonitoringSessionStatus.COMPLETED
             active_session.end_time = now
+            CapacityService.finalize_capacity(db, active_session)
 
         db_session = MonitoringSession(
             battery_id=session.battery_id,
             status=MonitoringSessionStatus.ACTIVE,
+            test_status="ACTIVE",
+            running_capacity_mah=0.0,
             start_time=now,
         )
 
@@ -114,6 +136,7 @@ class SessionService:
         for active_session in active_sessions:
             active_session.status = MonitoringSessionStatus.COMPLETED
             active_session.end_time = now
+            CapacityService.finalize_capacity(db, active_session)
 
         db.commit()
 
@@ -131,3 +154,8 @@ class SessionService:
             .filter(MonitoringSession.status == MonitoringSessionStatus.ACTIVE)
             .first()
         )
+
+    @staticmethod
+    def get_session_analysis(db: Session, session_id: UUID):
+
+        return CapacityService.summarize_session(db, session_id)

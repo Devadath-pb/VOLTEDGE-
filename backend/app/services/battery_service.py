@@ -16,6 +16,27 @@ class BatteryService:
         return db.query(Battery).all()
 
     @staticmethod
+    def get_active_battery(db: Session):
+        """Fetch the currently active battery."""
+        active = db.query(Battery).filter(Battery.is_active == True).first()
+        if not active:
+            active = db.query(Battery).first()
+        return active
+
+    @staticmethod
+    def set_active_battery(db: Session, battery_id: UUID):
+        """Mark a specific battery as active and deactivate all others."""
+        target = db.query(Battery).filter(Battery.battery_id == battery_id).first()
+        if not target:
+            return None
+
+        db.query(Battery).update({Battery.is_active: False}, synchronize_session=False)
+        target.is_active = True
+        db.commit()
+        db.refresh(target)
+        return target
+
+    @staticmethod
     def get_battery_by_id(
         db: Session,
         battery_id: UUID,
@@ -74,12 +95,9 @@ class BatteryService:
         return battery
 
     @staticmethod
-    def create_battery(
-        db: Session,
-        battery: BatteryCreate,
-    ):
+    def create_battery(db: Session, battery: BatteryCreate, owner_id: UUID):
 
-        db_battery = Battery(**battery.model_dump())
+        db_battery = Battery(**battery.model_dump(), owner_id=owner_id)
 
         db.add(db_battery)
 

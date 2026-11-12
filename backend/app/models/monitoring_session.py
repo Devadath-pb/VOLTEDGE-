@@ -1,7 +1,7 @@
 import uuid
 from enum import Enum as PyEnum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey
+from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -12,6 +12,12 @@ from app.core.database import Base
 class MonitoringSessionStatus(str, PyEnum):
     ACTIVE = "ACTIVE"
     COMPLETED = "COMPLETED"
+
+
+class MonitoringSessionTestStatus(str, PyEnum):
+    ACTIVE = "ACTIVE"
+    COMPLETED = "COMPLETED"
+    INCOMPLETE_TEST = "INCOMPLETE_TEST"
 
 
 class MonitoringSession(Base):
@@ -36,6 +42,28 @@ class MonitoringSession(Base):
         ),
         nullable=False,
         default=MonitoringSessionStatus.ACTIVE
+    )
+
+    test_status = Column(
+        String(30),
+        nullable=False,
+        default="ACTIVE"
+    )
+
+    running_capacity_mah = Column(
+        Float,
+        nullable=True,
+        default=0.0
+    )
+
+    estimated_capacity_mah = Column(
+        Float,
+        nullable=True
+    )
+
+    estimated_soh = Column(
+        Float,
+        nullable=True
     )
 
     start_time = Column(

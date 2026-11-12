@@ -25,6 +25,8 @@ float readTemperature()
 
     int adc = analogRead(THERMISTOR_PIN);
 
+    Serial.print("TEMP ADC: ");
+    Serial.println(adc);
     if (adc <= 0 || adc >= 4095)
         return NAN;
 
@@ -36,6 +38,7 @@ float readTemperature()
     steinhart += 1.0 / (NOMINAL_TEMPERATURE + 273.15);
     steinhart = 1.0 / steinhart;
     steinhart -= 273.15;
+
 
     return steinhart;
 }

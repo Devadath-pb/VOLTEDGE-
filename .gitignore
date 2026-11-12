@@ -72,3 +72,6 @@ Thumbs.db
 # ==============================
 *.tmp
 *.bak
+
+# Firmware secrets
+firmware/VoltEdge_Firmware/secrets.h

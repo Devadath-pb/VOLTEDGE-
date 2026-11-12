@@ -2,69 +2,72 @@
 #include "config.h"
 #include "relay_manager.h"
 
-bool dischargeMode = false;
+static bool currentRelayStatus = false;
 
-bool lastButtonState = HIGH;
-
-unsigned long lastDebounce = 0;
-
-const unsigned long debounceDelay = 50;
+static bool lastButtonReading = HIGH;
+static bool debouncedButtonState = HIGH;
+static unsigned long lastDebounceTime = 0;
+static const unsigned long DEBOUNCE_DELAY_MS = 50;
 
 void relayInit()
 {
     pinMode(RELAY_PIN, OUTPUT);
     pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-    digitalWrite(RELAY_PIN, RELAY_OFF);
+    setRelayState(false);
 }
 
-void relayUpdate()
+void setRelayState(bool turnOn)
+{
+    currentRelayStatus = turnOn;
+    digitalWrite(RELAY_PIN, turnOn ? RELAY_ON : RELAY_OFF);
+}
+
+bool isRelayOn()
+{
+    return currentRelayStatus;
+}
+
+bool checkButtonPressed()
 {
     bool reading = digitalRead(BUTTON_PIN);
+    bool pressed = false;
 
-    if (reading != lastButtonState)
+    if (reading != lastButtonReading)
     {
-        lastDebounce = millis();
+        lastDebounceTime = millis();
     }
 
-    if ((millis() - lastDebounce) > debounceDelay)
+    if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY_MS)
     {
-        static bool buttonState = HIGH;
-
-        if (reading != buttonState)
+        if (reading != debouncedButtonState)
         {
-            buttonState = reading;
-
-            if (buttonState == LOW)
+            debouncedButtonState = reading;
+            if (debouncedButtonState == LOW)
             {
-                dischargeMode = !dischargeMode;
-
-                digitalWrite(RELAY_PIN,
-                             dischargeMode ? RELAY_ON : RELAY_OFF);
-
-                Serial.println("--------------------------------");
-
-                Serial.print("Mode Changed -> ");
-
-                Serial.println(dischargeMode ?
-                               "DISCHARGING" :
-                               "CHARGING");
+                pressed = true;
             }
         }
     }
 
-    lastButtonState = reading;
+    lastButtonReading = reading;
+    return pressed;
 }
 
 bool isDischarging()
 {
-    return dischargeMode;
+    return currentRelayStatus;
 }
 
 String getMode()
 {
-    if(dischargeMode)
+    if (currentRelayStatus)
         return "DISCHARGING";
 
     return "CHARGING";
+}
+
+void stopDischarge()
+{
+    setRelayState(false);
 }

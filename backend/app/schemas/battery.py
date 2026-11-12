@@ -30,5 +30,6 @@ class BatteryResponse(BaseModel):
     nominal_voltage: float
 
     status: str
+    is_active: bool = False
 
     model_config = ConfigDict(from_attributes=True)
