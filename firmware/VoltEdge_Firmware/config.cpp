@@ -1,4 +1,5 @@
 #include "config.h"
+#define VOLTEDGE_SECRETS_IMPLEMENTATION
 #include "secrets.h"
 
 // Use the public HTTPS URL of the deployed FastAPI backend.
