@@ -23,8 +23,9 @@ export default function Dashboard() {
         right={
           <>
             <ConnectionIndicator source={source} />
-            <span className="chip bg-lightmint text-darkgreen">
-              <span className="h-2 w-2 rounded-full bg-bright volt-live-dot" /> LIVE
+            <span className={`chip ${source === 'live' ? 'bg-lightmint text-darkgreen' : 'bg-slate-100 text-muted'}`}>
+              <span className={`h-2 w-2 rounded-full ${source === 'live' ? 'bg-bright volt-live-dot' : 'bg-slate-400'}`} />
+              {source === 'live' ? 'LIVE' : 'NOT LIVE'}
             </span>
             <span className="chip bg-white/80 text-muted">
               <RefreshCw className="h-3.5 w-3.5" />
@@ -65,10 +66,12 @@ export default function Dashboard() {
       <div className="mt-6 grid gap-5 xl:grid-cols-2">
         {series.length ? (
           <>
-            <LiveLineChart title="Voltage vs Time" data={series} dataKey="voltage" unit="V" domain={[48, 54]} demo={source === 'demo'} />
-            <LiveLineChart title="Current vs Time" data={series} dataKey="current" unit="A" color="#22C55E" domain={[0, 16]} demo={source === 'demo'} />
+            <LiveLineChart title="Voltage vs Time" data={series} dataKey="voltage" unit="V" demo={source === 'demo'} />
+            <LiveLineChart title="Current vs Time" data={series} dataKey="current" unit="A" color="#22C55E" demo={source === 'demo'} />
             <LiveLineChart title="Temperature vs Time" data={series} dataKey="temperature" unit="°C" color="#F59E0B" domain={[15, 45]} demo={source === 'demo'} />
-            <LiveLineChart title="SOC vs Time" data={series} dataKey="soc" unit="%" color="#14532D" domain={[0, 100]} demo={source === 'demo'} />
+            {series.some((point) => point.soc != null)
+              ? <LiveLineChart title="SOC vs Time" data={series} dataKey="soc" unit="%" color="#14532D" domain={[0, 100]} demo={source === 'demo'} />
+              : <EmptyState title="SOC is not available yet" hint="Add SOC to the ESP32 telemetry payload or provide it from the backend model." />}
           </>
         ) : (
           <div className="xl:col-span-2">

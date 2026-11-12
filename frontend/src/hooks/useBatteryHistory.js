@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getJSON, endpoints } from '../services/api.js'
 import { useApp } from '../context/AppContext.jsx'
-import { makeHistory } from '../utils/demoData.js'
 
 // Historical readings + prediction records with client-side filters.
 export function useBatteryHistory() {
-  const { demoMode, setDemoMode } = useApp()
+  const { demoMode } = useApp()
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -23,9 +22,8 @@ export function useBatteryHistory() {
       .then((d) => { if (!cancelled) { setRows(d); setError(null) } })
       .catch((e) => {
         if (cancelled) return
-        setRows(makeHistory(14))
-        setDemoMode(true)
-        setError(null)
+        setRows([])
+        setError(e.message)
       })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }

@@ -3,7 +3,7 @@ import { getJSON, endpoints } from '../services/api.js'
 import { useApp } from '../context/AppContext.jsx'
 
 export function useBatteryStatus() {
-  const { demoMode, setDemoMode, connected, lastValidReading } = useApp()
+  const { demoMode, lastValidReading } = useApp()
   const [status, setStatus] = useState(null)
   const [loading, setLoading] = useState(!demoMode)
   const [error, setError] = useState(null)
@@ -19,17 +19,16 @@ export function useBatteryStatus() {
     }
     let cancelled = false
     setLoading(true)
-    getJSON(endpoints.status)
-      .then((d) => { if (!cancelled) { setStatus(d); setError(null) } })
-      .catch(() => {
-        if (!cancelled) {
-          setDemoMode(true)
-          setError(null)
-        }
-      })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
-  }, [demoMode, connected, lastValidReading])
+    const load = () => {
+      getJSON(endpoints.status)
+        .then((d) => { if (!cancelled) { setStatus(d); setError(null) } })
+        .catch((e) => { if (!cancelled) setError(e.message) })
+        .finally(() => { if (!cancelled) setLoading(false) })
+    }
+    load()
+    const timer = setInterval(load, 10000)
+    return () => { cancelled = true; clearInterval(timer) }
+  }, [demoMode])
 
   return { status, loading, error }
 }

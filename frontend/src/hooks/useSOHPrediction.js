@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { getJSON, endpoints } from '../services/api.js'
 import { useApp } from '../context/AppContext.jsx'
-import { makeSOHPrediction } from '../utils/demoData.js'
 
 // Fetches the automatic SOH prediction + analytics payload.
 // Demo mode returns structured mock data; uncertainty is only surfaced when supplied.
 export function useSOHPrediction() {
-  const { demoMode, setDemoMode } = useApp()
+  const { demoMode } = useApp()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -23,11 +22,10 @@ export function useSOHPrediction() {
       }
       getJSON(endpoints.soh)
         .then((d) => { if (!cancelled) { setData(d); setError(null) } })
-        .catch(() => {
+        .catch((e) => {
           if (!cancelled) {
-            setData(makeSOHPrediction())
-            setDemoMode(true)
-            setError(null)
+            setData(null)
+            setError(e.message)
           }
         })
         .finally(() => { if (!cancelled) setLoading(false) })

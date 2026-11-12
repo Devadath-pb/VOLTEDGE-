@@ -9,6 +9,7 @@ const stateMeta = {
 }
 
 export default function BatteryVisualization({ soc, state = 'idle', soh }) {
+  const hasSoc = soc != null
   const level = clamp(soc ?? 0, 0, 100)
   const meta = stateMeta[state] ?? stateMeta.idle
   const Icon = meta.icon
@@ -23,7 +24,7 @@ export default function BatteryVisualization({ soc, state = 'idle', soh }) {
       <div className={`relative h-56 w-32 rounded-2xl border-4 border-ink/70 bg-white/60 p-1.5 ring-4 ${meta.ring}`}>
         <div className="absolute -top-2.5 left-1/2 h-3 w-12 -translate-x-1/2 rounded-t-md bg-ink/70" />
         <div className="relative h-full w-full overflow-hidden rounded-xl bg-lightmint/60">
-          <motion.div
+          {hasSoc && <motion.div
             className={`absolute bottom-0 left-0 w-full rounded-lg bg-gradient-to-t ${levelColor}`}
             initial={false}
             animate={{ height: `${level}%` }}
@@ -34,10 +35,10 @@ export default function BatteryVisualization({ soc, state = 'idle', soh }) {
               animate={{ y: [0, 6, 0] }}
               transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}
             />
-          </motion.div>
+          </motion.div>}
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="font-poppins text-3xl font-extrabold text-ink drop-shadow-sm">
-              {level.toFixed(0)}<span className="text-lg">%</span>
+              {hasSoc ? level.toFixed(0) : '—'}{hasSoc && <span className="text-lg">%</span>}
             </span>
           </div>
         </div>
@@ -51,6 +52,7 @@ export default function BatteryVisualization({ soc, state = 'idle', soh }) {
           State of Health <span className="text-darkgreen">{soh.toFixed(1)}%</span>
         </p>
       )}
+      {!hasSoc && <p className="text-xs font-semibold text-muted">SOC unavailable from current device payload</p>}
     </div>
   )
 }
