@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { Zap, Activity, Thermometer, BatteryMedium, HeartPulse, Repeat, RefreshCw, AlertTriangle } from 'lucide-react'
 import PageHeader from '../components/common/PageHeader.jsx'
 import MetricCard from '../components/cards/MetricCard.jsx'
@@ -13,7 +14,8 @@ import { fmt, fmtTime } from '../utils/format.js'
 export default function Dashboard() {
   const { series, live, source } = useBatteryLiveData(40)
   const { lastValidReading, demoMode } = useApp()
-  const disconnected = source === 'disconnected' || source === 'error'
+  const authenticationExpired = source === 'auth'
+  const disconnected = source === 'disconnected' || source === 'error' || authenticationExpired
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
@@ -40,12 +42,24 @@ export default function Dashboard() {
         <div className="mb-6 flex items-start gap-3 rounded-glass border border-amber-200 bg-amber-50/90 p-4 text-sm text-amber-800 backdrop-blur" role="alert">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
           <div>
-            <p className="font-semibold">Live connection lost</p>
-            <p>
-              Showing the last valid readings only.
-              {lastValidReading && <> Last valid reading: <strong>{new Date(lastValidReading).toLocaleString()}</strong>.</>}
-              {' '}Charts will resume automatically when the device reconnects.
-            </p>
+            {authenticationExpired ? (
+              <>
+                <p className="font-semibold">Your session has expired</p>
+                <p className="mt-1">Sign in again to securely load your battery data.</p>
+                <Link to="/login" className="mt-3 inline-flex rounded-xl bg-amber-700 px-3 py-2 text-xs font-bold text-white transition hover:bg-amber-800">
+                  Sign in again
+                </Link>
+              </>
+            ) : (
+              <>
+                <p className="font-semibold">Live connection lost</p>
+                <p>
+                  Showing the last valid readings only.
+                  {lastValidReading && <> Last valid reading: <strong>{new Date(lastValidReading).toLocaleString()}</strong>.</>}
+                  {' '}Charts will resume automatically when the device reconnects.
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}

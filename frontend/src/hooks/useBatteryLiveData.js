@@ -49,9 +49,15 @@ export function useBatteryLiveData(maxPoints = 40) {
       } catch (error) {
         if (cancelled) return
         setConnected(false)
-        setSource('error')
+        const authenticationExpired = error.statusCode === 401
+        setSource(authenticationExpired ? 'auth' : 'error')
         if (!errorShownRef.current) {
-          pushToast(`Live telemetry unavailable: ${error.message}`, 'error')
+          pushToast(
+            authenticationExpired
+              ? 'Your session expired. Sign in again to view live telemetry.'
+              : `Live telemetry unavailable: ${error.message}`,
+            'error',
+          )
           errorShownRef.current = true
         }
       }

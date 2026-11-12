@@ -26,7 +26,9 @@ api.interceptors.response.use(
       error?.response?.data?.detail ||
       error?.message ||
       'Unknown backend error'
-    return Promise.reject(new Error(message))
+    const normalized = new Error(message)
+    normalized.statusCode = error?.response?.status
+    return Promise.reject(normalized)
   },
 )
 
