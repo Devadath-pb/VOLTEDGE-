@@ -1,3 +1,4 @@
 # Authentication dependency for Supabase JWT validation.
 PyJWT==2.10.1
+cryptography>=42.0.0,<47
 pydantic-settings==2.14.2
