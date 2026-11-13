@@ -5,6 +5,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 from statistics import pstdev
+from datetime import timezone
 
 import joblib
 import pandas as pd
@@ -12,6 +13,7 @@ import pandas as pd
 
 MODEL_PATH = Path(__file__).resolve().parents[1] / "ml" / "models" / "soh_model.pkl"
 CURRENT_MA_TO_A = 1000.0
+DEFAULT_MEASUREMENT_COLS = ["voltage", "current", "temperature"]
 
 
 class SOHModelUnavailable(RuntimeError):
@@ -82,6 +84,58 @@ def build_feature_row(rows, cycle_number: int, feature_columns: list[str]) -> di
     return {column: values[column] for column in feature_columns}
 
 
+def _row_time_seconds(row) -> float | None:
+    """Return a monotonic-ish device time, falling back to server time."""
+    timestamp = getattr(row, "timestamp", None)
+    if timestamp is not None:
+        return float(timestamp) / 1000.0
+
+    created_at = getattr(row, "created_at", None)
+    if created_at is None:
+        return None
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=timezone.utc)
+    return created_at.timestamp()
+
+
+def feature_window(rows, cycle_number: int) -> dict:
+    """Describe the measured feature window without running model inference."""
+    artifact = load_soh_artifact()
+    feature_row = build_feature_row(rows, cycle_number, artifact["feature_columns"])
+    times = [value for value in (_row_time_seconds(row) for row in rows) if value is not None]
+    duration_seconds = max(times) - min(times) if len(times) > 1 else 0.0
+    created_times = [row.created_at for row in rows if getattr(row, "created_at", None)]
+
+    return {
+        "sample_count": len(rows),
+        "window_seconds": round(max(0.0, duration_seconds), 2),
+        "started_at": min(created_times).isoformat() if created_times else None,
+        "ended_at": max(created_times).isoformat() if created_times else None,
+        "features": feature_row,
+        "feature_columns": artifact["feature_columns"],
+        "measurement_columns": artifact.get("measurement_cols") or DEFAULT_MEASUREMENT_COLS,
+    }
+
+
+def model_metadata() -> dict:
+    artifact = load_soh_artifact()
+    importances = getattr(artifact["model"], "feature_importances_", None)
+    feature_importance = []
+    if importances is not None:
+        feature_importance = [
+            {"feature": name, "importance": float(value)}
+            for name, value in zip(artifact["feature_columns"], importances)
+        ]
+        feature_importance.sort(key=lambda item: item["importance"], reverse=True)
+
+    return {
+        "model_name": type(artifact["model"]).__name__,
+        "feature_columns": artifact["feature_columns"],
+        "measurement_columns": artifact.get("measurement_cols") or DEFAULT_MEASUREMENT_COLS,
+        "feature_importance": feature_importance,
+    }
+
+
 def predict(rows, cycle_number: int) -> dict:
     artifact = load_soh_artifact()
     feature_row = build_feature_row(rows, cycle_number, artifact["feature_columns"])
@@ -103,4 +157,6 @@ def predict(rows, cycle_number: int) -> dict:
         "feature_importance": feature_importance,
         "model_name": type(artifact["model"]).__name__,
         "feature_columns": artifact["feature_columns"],
+        "feature_row": feature_row,
+        "window": feature_window(rows, cycle_number),
     }

@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
-import { getJSON, endpoints } from '../services/api.js'
+import { getJSON, postJSON, endpoints } from '../services/api.js'
 import { useApp } from '../context/AppContext.jsx'
 
-// Fetches the automatic SOH prediction + analytics payload.
-// Demo mode returns structured mock data; uncertainty is only surfaced when supplied.
+// Loads collected SOH features. Model inference is explicitly triggered by the
+// user so a one-second telemetry stream does not cause one prediction per second.
 export function useSOHPrediction() {
   const { demoMode } = useApp()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [predicting, setPredicting] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -33,11 +34,28 @@ export function useSOHPrediction() {
         .finally(() => { if (!cancelled) setLoading(false) })
     }
     load()
-    const t = setInterval(load, 30000) // automatic refresh, no manual trigger needed
+    const t = setInterval(load, 10000) // refresh collected features, never inference
     return () => { cancelled = true; clearInterval(t) }
   }, [demoMode])
 
-  return { data, loading, error }
+  const predict = async () => {
+    setPredicting(true)
+    setError(null)
+    try {
+      const next = demoMode
+        ? makeSOHPrediction()
+        : await postJSON(endpoints.sohPredict, null, { timeout: 45000 })
+      setData(next)
+      return next
+    } catch (e) {
+      setError(e.message)
+      return null
+    } finally {
+      setPredicting(false)
+    }
+  }
+
+  return { data, loading, error, predicting, predict }
 }
 
 export function useTrends() {

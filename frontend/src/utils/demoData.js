@@ -32,11 +32,32 @@ export function makeLiveSeries(points = 40, intervalMs = 2000) {
 export function makeSOHPrediction() {
   return {
     predictedSoh: 87.4,
+    predictionAvailable: true,
     predictedCapacityAh: 87.4, // % of 100 Ah rated
     ratedCapacityAh: 100,
     timestamp: now(),
     model: 'GradientBoosting-SOH v2.3',
     category: 'Good',
+    latestCycle: 312,
+    featureColumns: [
+      'cycle', 'voltage_mean', 'voltage_min', 'voltage_max', 'voltage_std',
+      'current_mean', 'current_min', 'current_max', 'current_std',
+      'temperature_mean', 'temperature_min', 'temperature_max', 'temperature_std',
+    ],
+    measurementColumns: ['voltage', 'current', 'temperature'],
+    featureCollection: {
+      ready: true,
+      sample_count: 120,
+      window_seconds: 120,
+      ended_at: now(),
+      message: 'Demo feature window is ready for prediction.',
+      features: {
+        cycle: 312,
+        voltage_mean: 51.2, voltage_min: 50.4, voltage_max: 52.0, voltage_std: 0.32,
+        current_mean: 8.0, current_min: 5.0, current_max: 11.0, current_std: 1.2,
+        temperature_mean: 29.0, temperature_min: 26.0, temperature_max: 32.0, temperature_std: 1.1,
+      },
+    },
     // Uncertainty omitted on purpose unless calibrated backend supplies it.
     pipeline: {
       collection: 'complete',

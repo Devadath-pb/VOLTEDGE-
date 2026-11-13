@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Database, Filter, Braces, Cpu, CheckCircle2, Loader2, Clock, Box } from 'lucide-react'
+import { Database, Filter, Braces, Cpu, CheckCircle2, Loader2, Clock, Box, Play, Timer } from 'lucide-react'
 import PageHeader from '../components/common/PageHeader.jsx'
 import GlassCard from '../components/common/GlassCard.jsx'
 import SOHGauge from '../components/battery/SOHGauge.jsx'
@@ -37,7 +37,7 @@ function StepChip({ icon: Icon, label, state }) {
 }
 
 export default function Analytics() {
-  const { data, loading, error } = useSOHPrediction()
+  const { data, loading, error, predicting, predict } = useSOHPrediction()
   const { demoMode } = useApp()
 
   if (loading) return <div className="pt-8"><LoadingState label="Loading SOH prediction pipeline…" /></div>
@@ -48,6 +48,16 @@ export default function Analytics() {
   const hasUncertainty = data.uncertainty != null
   const hasReference = Array.isArray(data.actualVsPredicted) && data.actualVsPredicted.length > 0
   const hasForecast = Array.isArray(data.forecast) && data.forecast.length > 0
+  const featureCollection = data.featureCollection ?? {}
+  const featureValues = featureCollection.features ?? {}
+  const featureColumns = data.featureColumns ?? []
+  const measurementColumns = data.measurementColumns ?? ['voltage', 'current', 'temperature']
+  const formatFeatureName = (name) => name.replaceAll('_', ' ')
+  const formatFeatureValue = (name, value) => {
+    if (value == null) return '—'
+    if (name === 'cycle') return String(Math.round(value))
+    return fmt(value, name.endsWith('_std') ? 4 : 3)
+  }
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
@@ -55,25 +65,36 @@ export default function Analytics() {
         title="Battery Analytics & SOH Prediction"
         subtitle="Intelligent battery health analysis powered by Machine Learning."
         right={<>{demoMode && <DemoBadge />}
-          <span className="chip bg-lightmint text-darkgreen"><Clock className="h-3.5 w-3.5" /> Auto-refresh 30s</span></>}
+          <span className="chip bg-lightmint text-darkgreen"><Timer className="h-3.5 w-3.5" /> Features refresh 10s</span>
+          <button
+            type="button"
+            className="btn-primary !px-4 !py-2 text-xs"
+            onClick={predict}
+            disabled={predicting || !featureCollection.ready}
+            title={featureCollection.ready ? 'Run one SOH prediction using the collected feature window' : featureCollection.message}
+          >
+            {predicting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+            {predicting ? 'Predicting…' : data.predictionAvailable ? 'Predict again' : 'Predict SOH'}
+          </button>
+        </>}
       />
 
       {/* Prediction overview */}
       <div className="grid gap-5 lg:grid-cols-3">
         <GlassCard className="flex flex-col items-center gap-5 !p-8">
           <SOHGauge value={data.predictedSoh} />
-          <span className={`chip ${cat.color} !px-4 !py-1.5 !text-sm`}>{cat.label} battery health</span>
+          <span className={`chip ${cat.color} !px-4 !py-1.5 !text-sm`}>{data.predictionAvailable ? `${cat.label} battery health` : 'No prediction yet'}</span>
         </GlassCard>
 
         <GlassCard className="lg:col-span-2">
           <h2 className="label-caps mb-5">Prediction Overview</h2>
           <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
             {[
-              ['Predicted SOH', `${fmt(data.predictedSoh, 1)}%`],
+              ['Predicted SOH', data.predictionAvailable ? `${fmt(data.predictedSoh, 1)}%` : 'Not predicted yet'],
               ['Predicted capacity', data.predictedCapacityAh != null ? `≈ ${fmt(data.predictedCapacityAh, 1)} Ah${data.ratedCapacityAh ? ` of ${data.ratedCapacityAh} Ah` : ''}` : '—'],
-              ['Prediction timestamp', fmtDateTime(data.timestamp)],
+              ['Prediction timestamp', data.predictionAvailable ? fmtDateTime(data.predictionTimestamp ?? data.timestamp) : 'Not predicted yet'],
               ['ML model', data.model ?? '—'],
-              ['Health category', cat.label],
+              ['Health category', data.predictionAvailable ? cat.label : 'Unknown'],
               ...(hasUncertainty ? [['Prediction uncertainty', `± ${fmt(data.uncertainty, 2)}% (calibrated)`]] : []),
             ].map(([k, v]) => (
               <div key={k} className="border-b border-primary/10 pb-3">
@@ -90,14 +111,59 @@ export default function Analytics() {
         </GlassCard>
       </div>
 
-      {/* Automatic pipeline status */}
+      {/* Collected model inputs */}
       <GlassCard className="mt-6">
-        <h2 className="label-caps mb-4">Automatic Analysis Pipeline</h2>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="label-caps mb-2">SOH Feature Collection</h2>
+            <p className="max-w-3xl text-sm text-muted">
+              Telemetry keeps collecting every second. The model aggregates the time-spaced readings below and runs only when you press Predict SOH.
+            </p>
+          </div>
+          <span className={`chip ${featureCollection.ready ? 'bg-mint text-darkgreen' : 'bg-amber-100 text-amber-700'}`}>
+            <Clock className="h-3.5 w-3.5" /> {featureCollection.ready ? 'Ready to predict' : 'Collecting features'}
+          </span>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ['Samples collected', featureCollection.sample_count ?? '—'],
+            ['Time window', featureCollection.window_seconds != null ? `${fmt(featureCollection.window_seconds, 1)} s` : '—'],
+            ['Active cycle', data.latestCycle ?? '—'],
+            ['Window ended', featureCollection.ended_at ? fmtDateTime(featureCollection.ended_at) : '—'],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-2xl border border-primary/10 bg-lightmint/45 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted">{label}</p>
+              <p className="mt-1 font-poppins text-lg font-bold text-ink">{value}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-5">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">Measurements collected from battery</p>
+          <div className="flex flex-wrap gap-2">
+            {measurementColumns.map((column) => (
+              <span key={column} className="chip bg-white/85 text-darkgreen">{formatFeatureName(column)}</span>
+            ))}
+          </div>
+        </div>
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {featureColumns.map((column) => (
+            <div key={column} className="flex items-center justify-between gap-3 border-b border-primary/10 py-2 text-sm">
+              <span className="text-muted">{formatFeatureName(column)}</span>
+              <span className="font-semibold tabular-nums text-ink">{formatFeatureValue(column, featureValues[column])}</span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-xs text-muted">{featureCollection.message ?? 'Waiting for feature collection.'}</p>
+      </GlassCard>
+
+      {/* Prediction pipeline status */}
+      <GlassCard className="mt-6">
+        <h2 className="label-caps mb-4">Prediction Pipeline</h2>
         <div className="flex flex-wrap gap-2.5">
           {pipelineSteps(data.pipeline).map((s) => <StepChip key={s.label} {...s} />)}
         </div>
         <p className="mt-4 text-xs text-muted">
-          States reflect actual backend processing. Predictions run automatically on new readings — no manual trigger required.
+          States reflect actual backend processing. New readings update the feature window; inference runs only after a manual prediction request.
         </p>
       </GlassCard>
 

@@ -37,6 +37,7 @@ export const endpoints = {
   status: '/api/battery/status',
   history: '/api/battery/history',
   soh: '/api/analytics/soh',
+  sohPredict: '/api/analytics/soh/predict',
   trends: '/api/analytics/trends',
   modelMetrics: '/api/analytics/model-metrics',
   reuseRecommendations: '/api/reuse/recommendations',
@@ -46,5 +47,10 @@ export const endpoints = {
 
 export const getJSON = async (url, params, config = {}) => {
   const { data } = await api.get(url, { params, ...config })
+  return data
+}
+
+export const postJSON = async (url, body, config = {}) => {
+  const { data } = await api.post(url, body, config)
   return data
 }
