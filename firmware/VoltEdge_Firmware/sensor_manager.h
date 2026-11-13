@@ -7,4 +7,6 @@ bool sensorInit();
 
 BatteryData readBattery();
 
+float estimateStateOfCharge(float voltage);
+
 #endif

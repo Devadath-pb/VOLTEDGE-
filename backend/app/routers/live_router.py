@@ -34,9 +34,7 @@ def _reading(telemetry: Telemetry | None):
         "current": telemetry.current,
         "power": telemetry.power,
         "temperature": telemetry.temperature,
-        # The current ESP32 payload does not contain SOC or SOH. Keep these
-        # null until a sensor/model supplies them instead of inventing values.
-        "soc": None,
+        "soc": telemetry.soc,
         "soh": cycle.estimated_soh if cycle else None,
         "cycleCount": cycle.cycle_number if cycle else None,
         "state": _state(telemetry),
@@ -141,7 +139,7 @@ def get_battery_history(limit: int = 500, db: Session = Depends(get_db)):
             "current": row.current,
             "power": row.power,
             "temperature": row.temperature,
-            "soc": None,
+            "soc": row.soc,
             "predictedSoh": row.cycle.estimated_soh if row.cycle else None,
             "cycle": row.cycle.cycle_number if row.cycle else None,
             "state": _state(row),

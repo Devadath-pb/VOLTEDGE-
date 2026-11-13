@@ -261,6 +261,10 @@ bool sendBatteryData(const BatteryData& data)
     doc["voltage"] = data.voltage;
     doc["current"] = data.current;
     doc["power"] = data.power;
+    if (isnan(data.soc))
+        doc["soc"] = nullptr;
+    else
+        doc["soc"] = data.soc;
 
     if (isnan(data.temperature))
     {

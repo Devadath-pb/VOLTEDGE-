@@ -28,6 +28,11 @@
 // Configurable Discharge Cutoff Voltage (Volts)
 #define DISCHARGE_CUTOFF_VOLTAGE 3.0f
 
+// Voltage-based SOC estimate for a single-cell Li-ion battery.
+// Tune these values for the actual battery chemistry and calibrated limits.
+#define SOC_EMPTY_VOLTAGE 3.0f
+#define SOC_FULL_VOLTAGE  4.2f
+
 // WiFi Credentials (defined in config.cpp)
 extern const char* WIFI_SSID;
 extern const char* WIFI_PASSWORD;

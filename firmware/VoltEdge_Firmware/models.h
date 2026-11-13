@@ -20,6 +20,7 @@ struct BatteryData
     float current;
     float power;
     float temperature;
+    float soc;
 
     bool relay;
 

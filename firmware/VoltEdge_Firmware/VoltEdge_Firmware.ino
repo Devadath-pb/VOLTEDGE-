@@ -234,6 +234,15 @@ void loop()
         Serial.print("Power       : ");
         Serial.println(battery.power);
 
+        Serial.print("SOC         : ");
+        if (isnan(battery.soc))
+            Serial.println("N/A");
+        else
+        {
+            Serial.print(battery.soc, 1);
+            Serial.println(" % (estimated)");
+        }
+
         Serial.print("Temperature : ");
         if (isnan(battery.temperature))
             Serial.println("N/A");

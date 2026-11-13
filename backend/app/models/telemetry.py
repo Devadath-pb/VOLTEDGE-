@@ -43,6 +43,8 @@ class Telemetry(Base):
 
     power = Column(Float, nullable=False)
 
+    soc = Column(Float, nullable=True)
+
     energy_wh = Column(Float, nullable=True)
 
     temperature = Column(Float)

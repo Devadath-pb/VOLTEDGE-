@@ -9,6 +9,7 @@ def migrate_database():
         "ALTER TABLE monitoring_sessions ADD COLUMN IF NOT EXISTS running_capacity_mah FLOAT DEFAULT 0.0;",
         "ALTER TABLE monitoring_sessions ADD COLUMN IF NOT EXISTS estimated_capacity_mah FLOAT NULL;",
         "ALTER TABLE monitoring_sessions ADD COLUMN IF NOT EXISTS estimated_soh FLOAT NULL;",
+        "ALTER TABLE telemetry ADD COLUMN IF NOT EXISTS soc FLOAT NULL;",
     ]
 
     with engine.connect() as conn:

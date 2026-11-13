@@ -8,6 +8,24 @@
 
 Adafruit_INA219 ina219;
 
+float estimateStateOfCharge(float voltage)
+{
+    if (isnan(voltage))
+        return NAN;
+
+    const float span = SOC_FULL_VOLTAGE - SOC_EMPTY_VOLTAGE;
+    if (span <= 0.0f)
+        return NAN;
+
+    float percentage = ((voltage - SOC_EMPTY_VOLTAGE) / span) * 100.0f;
+    if (percentage < 0.0f)
+        percentage = 0.0f;
+    if (percentage > 100.0f)
+        percentage = 100.0f;
+
+    return percentage;
+}
+
 bool sensorInit()
 {
     Wire.begin(SDA_PIN, SCL_PIN);
@@ -50,6 +68,7 @@ BatteryData readBattery()
     data.voltage = ina219.getBusVoltage_V();
     data.current = ina219.getCurrent_mA();
     data.power = ina219.getPower_mW();
+    data.soc = estimateStateOfCharge(data.voltage);
 
     data.temperature = readTemperature();
 

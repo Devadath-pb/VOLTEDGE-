@@ -8,6 +8,7 @@ class TelemetryCreate(BaseModel):
     voltage: float
     current: float
     power: float
+    soc: float | None = None
     temperature: float | None = None
     mode: str = Field(..., min_length=1, max_length=50)
     relay: bool
@@ -27,6 +28,7 @@ class TelemetryResponse(BaseModel):
     voltage: float
     current: float
     power: float
+    soc: float | None = None
     energy_wh: float | None = None
     temperature: float | None
     mode: str
