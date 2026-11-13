@@ -44,7 +44,7 @@ export const endpoints = {
   settings: '/api/settings',
 }
 
-export const getJSON = async (url, params) => {
-  const { data } = await api.get(url, { params })
+export const getJSON = async (url, params, config = {}) => {
+  const { data } = await api.get(url, { params, ...config })
   return data
 }

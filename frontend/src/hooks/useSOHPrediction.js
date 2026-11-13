@@ -20,7 +20,9 @@ export function useSOHPrediction() {
         setLoading(false)
         return
       }
-      getJSON(endpoints.soh)
+      // The first request may load the Random Forest artifact on the Render
+      // instance. Give only the analytics request time to complete that warm-up.
+      getJSON(endpoints.soh, undefined, { timeout: 45000 })
         .then((d) => { if (!cancelled) { setData(d); setError(null) } })
         .catch((e) => {
           if (!cancelled) {
