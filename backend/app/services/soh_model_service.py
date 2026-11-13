@@ -119,21 +119,28 @@ def feature_window(rows, cycle_number: int) -> dict:
 
 def model_metadata() -> dict:
     artifact = load_soh_artifact()
-    importances = getattr(artifact["model"], "feature_importances_", None)
-    feature_importance = []
-    if importances is not None:
-        feature_importance = [
-            {"feature": name, "importance": float(value)}
-            for name, value in zip(artifact["feature_columns"], importances)
-        ]
-        feature_importance.sort(key=lambda item: item["importance"], reverse=True)
-
     return {
         "model_name": type(artifact["model"]).__name__,
         "feature_columns": artifact["feature_columns"],
         "measurement_columns": artifact.get("measurement_cols") or DEFAULT_MEASUREMENT_COLS,
-        "feature_importance": feature_importance,
+        "feature_importance": _feature_importance(artifact),
     }
+
+
+def _feature_importance(artifact: dict) -> list[dict]:
+    importances = getattr(artifact["model"], "feature_importances_", None)
+    if importances is None:
+        return []
+    values = [
+        {
+            "feature": name,
+            "importance": float(value),
+            "importancePercent": round(float(value) * 100.0, 6),
+        }
+        for name, value in zip(artifact["feature_columns"], importances)
+    ]
+    values.sort(key=lambda item: item["importance"], reverse=True)
+    return values
 
 
 def predict(rows, cycle_number: int) -> dict:
@@ -143,18 +150,9 @@ def predict(rows, cycle_number: int) -> dict:
     prediction = float(artifact["model"].predict(frame)[0])
     prediction = min(max(prediction, 0.0), 100.0)
 
-    importances = getattr(artifact["model"], "feature_importances_", None)
-    feature_importance = []
-    if importances is not None:
-        feature_importance = [
-            {"feature": name, "importance": float(value)}
-            for name, value in zip(artifact["feature_columns"], importances)
-        ]
-        feature_importance.sort(key=lambda item: item["importance"], reverse=True)
-
     return {
         "prediction": round(prediction, 3),
-        "feature_importance": feature_importance,
+        "feature_importance": _feature_importance(artifact),
         "model_name": type(artifact["model"]).__name__,
         "feature_columns": artifact["feature_columns"],
         "feature_row": feature_row,

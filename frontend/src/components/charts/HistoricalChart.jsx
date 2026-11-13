@@ -74,15 +74,20 @@ export function ForecastChart({ history, forecast }) {
 }
 
 export function FeatureImportanceChart({ data }) {
+  const chartData = data.map((item) => ({
+    ...item,
+    featureLabel: item.feature.replaceAll('_', ' '),
+    importancePercent: item.importancePercent ?? (Number(item.importance ?? 0) * 100),
+  }))
   return (
-    <Frame title="Feature Importance" subtitle="Influential features reported by the trained model">
-      <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
+    <Frame title="Feature Importance" subtitle="Recalculated from the deployed Random Forest model" height={380}>
+      <BarChart data={chartData} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(22,163,74,0.12)" horizontal={false} />
-        <XAxis type="number" domain={[0, 1]} tick={axis} stroke="rgba(22,163,74,0.25)" />
-        <YAxis type="category" dataKey="feature" width={170} tick={{ ...axis, fontSize: 10 }} stroke="rgba(22,163,74,0.25)" />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v) => [Number(v).toFixed(2), 'Importance']} />
-        <Bar dataKey="importance" radius={[0, 8, 8, 0]}>
-          {data.map((_, i) => <Cell key={i} fill={i === 0 ? '#16A34A' : '#86EFAC'} />)}
+        <XAxis type="number" domain={[0, 100]} unit="%" tick={axis} stroke="rgba(22,163,74,0.25)" />
+        <YAxis type="category" dataKey="featureLabel" width={170} tick={{ ...axis, fontSize: 10 }} stroke="rgba(22,163,74,0.25)" />
+        <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${Number(v).toFixed(3)}%`, 'Importance']} />
+        <Bar dataKey="importancePercent" radius={[0, 8, 8, 0]}>
+          {chartData.map((_, i) => <Cell key={i} fill={i === 0 ? '#16A34A' : '#86EFAC'} />)}
         </Bar>
       </BarChart>
     </Frame>

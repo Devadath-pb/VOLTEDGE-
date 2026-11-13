@@ -1,40 +1,15 @@
 import { motion } from 'framer-motion'
-import { Database, Filter, Braces, Cpu, CheckCircle2, Loader2, Clock, Box, Play, Timer } from 'lucide-react'
+import { Loader2, Clock, Box, Play, Timer } from 'lucide-react'
 import PageHeader from '../components/common/PageHeader.jsx'
 import GlassCard from '../components/common/GlassCard.jsx'
 import SOHGauge from '../components/battery/SOHGauge.jsx'
 import { LoadingState, ErrorState, DemoBadge } from '../components/common/states.jsx'
 import {
-  DegradationChart, ActualVsPredictedChart, ForecastChart, FeatureImportanceChart,
+  DegradationChart, FeatureImportanceChart,
 } from '../components/charts/HistoricalChart.jsx'
 import { useSOHPrediction } from '../hooks/useSOHPrediction.js'
 import { useApp } from '../context/AppContext.jsx'
 import { fmt, fmtDateTime, sohCategory } from '../utils/format.js'
-
-const pipelineSteps = (p) => [
-  { icon: Database, label: 'Data collection', state: p?.collection },
-  { icon: Filter, label: 'Preprocessing', state: p?.preprocessing },
-  { icon: Braces, label: 'Feature extraction', state: p?.featureExtraction },
-  { icon: Cpu, label: 'ML inference', state: p?.inference },
-  { icon: CheckCircle2, label: 'Prediction updated', state: p?.updated ? 'complete' : undefined },
-]
-
-function StepChip({ icon: Icon, label, state }) {
-  const map = {
-    complete: { cls: 'bg-mint text-darkgreen', icon: CheckCircle2, text: 'Complete' },
-    running: { cls: 'bg-sky-100 text-sky-700', icon: Loader2, text: 'Running' },
-    queued: { cls: 'bg-slate-100 text-slate-500', icon: Clock, text: 'Queued' },
-    failed: { cls: 'bg-red-100 text-red-600', icon: Box, text: 'Failed' },
-  }
-  const m = map[state] ?? { cls: 'bg-slate-100 text-slate-500', icon: Clock, text: 'Waiting' }
-  const StatusIcon = state ? m.icon : Icon
-  return (
-    <span className={`chip ${m.cls}`} title={label}>
-      <StatusIcon className={`h-3.5 w-3.5 ${state === 'running' ? 'animate-spin' : ''}`} />
-      {label} · {m.text}
-    </span>
-  )
-}
 
 export default function Analytics() {
   const { data, loading, error, predicting, predict } = useSOHPrediction()
@@ -46,12 +21,12 @@ export default function Analytics() {
 
   const cat = sohCategory(data.predictedSoh)
   const hasUncertainty = data.uncertainty != null
-  const hasReference = Array.isArray(data.actualVsPredicted) && data.actualVsPredicted.length > 0
-  const hasForecast = Array.isArray(data.forecast) && data.forecast.length > 0
   const featureCollection = data.featureCollection ?? {}
   const featureValues = featureCollection.features ?? {}
   const featureColumns = data.featureColumns ?? []
   const measurementColumns = data.measurementColumns ?? ['voltage', 'current', 'temperature']
+  const hasPredictionTrend = Array.isArray(data.degradation) && data.degradation.some((item) => item.predicted != null)
+  const featureImportance = Array.isArray(data.featureImportance) ? data.featureImportance : []
   const formatFeatureName = (name) => name.replaceAll('_', ' ')
   const formatFeatureValue = (name, value) => {
     if (value == null) return '—'
@@ -65,7 +40,7 @@ export default function Analytics() {
         title="Battery Analytics & SOH Prediction"
         subtitle="Intelligent battery health analysis powered by Machine Learning."
         right={<>{demoMode && <DemoBadge />}
-          <span className="chip bg-lightmint text-darkgreen"><Timer className="h-3.5 w-3.5" /> Features refresh 10s</span>
+          <span className="chip bg-lightmint text-darkgreen" title="Telemetry is collected continuously; inference runs only from the button"><Timer className="h-3.5 w-3.5" /> Live feature window</span>
           <button
             type="button"
             className="btn-primary !px-4 !py-2 text-xs"
@@ -156,40 +131,17 @@ export default function Analytics() {
         <p className="mt-4 text-xs text-muted">{featureCollection.message ?? 'Waiting for feature collection.'}</p>
       </GlassCard>
 
-      {/* Prediction pipeline status */}
-      <GlassCard className="mt-6">
-        <h2 className="label-caps mb-4">Prediction Pipeline</h2>
-        <div className="flex flex-wrap gap-2.5">
-          {pipelineSteps(data.pipeline).map((s) => <StepChip key={s.label} {...s} />)}
-        </div>
-        <p className="mt-4 text-xs text-muted">
-          States reflect actual backend processing. New readings update the feature window; inference runs only after a manual prediction request.
-        </p>
-      </GlassCard>
-
-      {/* SOH graphs */}
+      {/* Available analytics */}
       <div className="mt-6 grid gap-5 xl:grid-cols-2">
-        <DegradationChart data={data.degradation ?? []} />
-        {hasReference
-          ? <ActualVsPredictedChart data={data.actualVsPredicted} />
+        {hasPredictionTrend
+          ? <DegradationChart data={data.degradation} />
           : <GlassCard className="flex flex-col items-center justify-center gap-3 p-10 text-center">
-              <Box className="h-10 w-10 text-primary/50" />
-              <p className="font-semibold text-ink">Actual vs Predicted SOH</p>
-              <p className="max-w-sm text-sm text-muted">
-                Shown only when ground-truth reference measurements are available from the backend.
-              </p>
+              <Clock className="h-10 w-10 text-primary/50" />
+              <p className="font-semibold text-ink">SOH trend will appear after prediction</p>
+              <p className="max-w-sm text-sm text-muted">Collect the feature window, then press Predict SOH.</p>
             </GlassCard>}
-        {hasForecast
-          ? <ForecastChart history={data.degradation?.slice(-40)} forecast={data.forecast} />
-          : <GlassCard className="flex flex-col items-center justify-center gap-3 p-10 text-center">
-              <Box className="h-10 w-10 text-primary/50" />
-              <p className="font-semibold text-ink">Future SOH Forecast</p>
-              <p className="max-w-sm text-sm text-muted">
-                Requires a deployed forecasting model. No forecast model is currently available.
-              </p>
-            </GlassCard>}
-        {Array.isArray(data.featureImportance) && data.featureImportance.length > 0
-          ? <FeatureImportanceChart data={data.featureImportance} />
+        {featureImportance.length > 0
+          ? <FeatureImportanceChart data={featureImportance} />
           : <GlassCard className="flex flex-col items-center justify-center gap-3 p-10 text-center">
               <Box className="h-10 w-10 text-primary/50" />
               <p className="font-semibold text-ink">Feature Importance</p>
@@ -199,28 +151,6 @@ export default function Analytics() {
             </GlassCard>}
       </div>
 
-      {/* Model performance */}
-      {data.metrics && (
-        <div className="mt-6">
-          <h2 className="mb-4 font-poppins text-lg font-bold text-ink">Model Performance</h2>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              { label: 'MAE', value: data.metrics.mae, suffix: '% SOH' },
-              { label: 'RMSE', value: data.metrics.rmse, suffix: '% SOH' },
-              { label: 'R² Score', value: data.metrics.r2, suffix: '' },
-            ].map((m) => (
-              <GlassCard key={m.label} className="text-center">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted">{m.label}</p>
-                <p className="mt-2 font-poppins text-3xl font-extrabold text-primary">{fmt(m.value, m.label === 'R² Score' ? 3 : 2)}</p>
-                <p className="mt-1 text-xs text-muted">{m.suffix || 'coefficient of determination'}</p>
-              </GlassCard>
-            ))}
-          </div>
-          <p className="mt-3 text-xs text-muted">
-            Evaluation metrics are supplied by the backend training pipeline for the deployed model.
-          </p>
-        </div>
-      )}
     </motion.div>
   )
 }
