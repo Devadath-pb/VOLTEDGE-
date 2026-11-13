@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getJSON, endpoints } from '../services/api.js'
 import { useApp } from '../context/AppContext.jsx'
 import { makeLiveReading, makeLiveSeries } from '../utils/demoData.js'
+import { getBatteryPercentage } from '../utils/battery.js'
 
 // Live battery readings from the authenticated backend. The backend reads the
 // latest tenant-scoped telemetry stored in Supabase after ESP32 ingestion.
@@ -25,6 +26,9 @@ export function useBatteryLiveData(maxPoints = 40) {
         state: String(reading.state || 'idle').toLowerCase(),
         cycleCount: reading.cycleCount ?? null,
       }
+      const batteryPercentage = getBatteryPercentage(normalized)
+      normalized.batteryPercentage = batteryPercentage.value
+      normalized.batteryPercentageSource = batteryPercentage.source
       setLive(normalized)
       setSeries((s) => [...s.slice(-(maxRef.current - 1)), normalized])
       if (normalized.timestamp) setLastValidReading(normalized.timestamp)

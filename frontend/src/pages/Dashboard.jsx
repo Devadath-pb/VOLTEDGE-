@@ -65,13 +65,24 @@ export default function Dashboard() {
       )}
 
       <div className="grid gap-5 lg:grid-cols-3">
-        <BatteryVisualization soc={live?.soc} state={live?.state} soh={live?.soh} />
+        <BatteryVisualization
+          batteryPercentage={live?.batteryPercentage}
+          percentageSource={live?.batteryPercentageSource}
+          state={live?.state}
+          soh={live?.soh}
+        />
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:col-span-2">
           <MetricCard icon={Zap} label="Voltage" value={live ? fmt(live.voltage) : '—'} unit="V" />
           <MetricCard icon={Activity} label="Current" value={live ? fmt(live.current) : '—'} unit="A" />
           <MetricCard icon={Thermometer} label="Temperature" value={live ? fmt(live.temperature, 1) : '—'} unit="°C" />
-          <MetricCard icon={BatteryMedium} label="SOC" value={live ? fmt(live.soc, 1) : '—'} unit="%" />
+          <MetricCard
+            icon={BatteryMedium}
+            label="Battery %"
+            value={live ? fmt(live.batteryPercentage, 1) : '—'}
+            unit="%"
+            footnote={live?.batteryPercentageSource === 'voltage-estimate' ? 'Estimated from voltage' : 'From device SOC'}
+          />
           <MetricCard icon={HeartPulse} label="SOH" value={live ? fmt(live.soh, 1) : '—'} unit="%" footnote={demoMode ? 'Simulated' : 'From ML pipeline'} />
           <MetricCard icon={Repeat} label="Cycle Count" value={live ? live.cycleCount : '—'} />
         </div>

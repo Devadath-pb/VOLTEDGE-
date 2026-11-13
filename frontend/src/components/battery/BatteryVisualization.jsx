@@ -3,14 +3,14 @@ import { Zap, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react'
 import { clamp } from '../../utils/format.js'
 
 const stateMeta = {
-  charging: { label: 'Charging', icon: ArrowUpRight, color: 'text-primary', ring: 'ring-primary/40' },
-  discharging: { label: 'Discharging', icon: ArrowDownRight, color: 'text-amber-600', ring: 'ring-amber-400/40' },
-  idle: { label: 'Idle', icon: Minus, color: 'text-muted', ring: 'ring-slate-300' },
+  charging: { label: 'Charging', icon: ArrowUpRight, color: 'text-primary', ring: 'ring-primary/40', badge: 'bg-mint text-darkgreen' },
+  discharging: { label: 'Discharging', icon: ArrowDownRight, color: 'text-amber-600', ring: 'ring-amber-400/40', badge: 'bg-amber-100 text-amber-700' },
+  idle: { label: 'Idle', icon: Minus, color: 'text-muted', ring: 'ring-slate-300', badge: 'bg-slate-100 text-slate-600' },
 }
 
-export default function BatteryVisualization({ soc, state = 'idle', soh }) {
-  const hasSoc = soc != null
-  const level = clamp(soc ?? 0, 0, 100)
+export default function BatteryVisualization({ batteryPercentage, percentageSource, state = 'idle', soh }) {
+  const hasPercentage = batteryPercentage != null
+  const level = clamp(batteryPercentage ?? 0, 0, 100)
   const meta = stateMeta[state] ?? stateMeta.idle
   const Icon = meta.icon
   const levelColor = level > 50 ? 'from-bright to-primary' : level > 20 ? 'from-amber-400 to-amber-500' : 'from-red-400 to-red-500'
@@ -38,13 +38,13 @@ export default function BatteryVisualization({ soc, state = 'idle', soh }) {
           </motion.div>}
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="font-poppins text-3xl font-extrabold text-ink drop-shadow-sm">
-              {hasSoc ? level.toFixed(0) : '—'}{hasSoc && <span className="text-lg">%</span>}
+              {hasPercentage ? level.toFixed(0) : '—'}{hasPercentage && <span className="text-lg">%</span>}
             </span>
           </div>
         </div>
       </div>
 
-      <div className={`chip ${state === 'charging' ? 'bg-mint text-darkgreen' : state === 'discharging' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>
+      <div className={`chip ${meta.badge}`}>
         <Icon className="h-3.5 w-3.5" /> {meta.label}
       </div>
       {soh != null && (
@@ -52,7 +52,12 @@ export default function BatteryVisualization({ soc, state = 'idle', soh }) {
           State of Health <span className="text-darkgreen">{soh.toFixed(1)}%</span>
         </p>
       )}
-      {!hasSoc && <p className="text-xs font-semibold text-muted">SOC unavailable from current device payload</p>}
+      {!hasPercentage && <p className="text-xs font-semibold text-muted">Battery percentage unavailable</p>}
+      {percentageSource === 'voltage-estimate' && (
+        <p className="max-w-[14rem] text-center text-xs font-semibold text-muted">
+          Estimated from voltage; add SOC to the device payload for a measured percentage.
+        </p>
+      )}
     </div>
   )
 }
