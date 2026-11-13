@@ -41,6 +41,7 @@ GET /api/battery/live
 GET /api/battery/status
 GET /api/battery/history
 GET /api/analytics/soh
+POST /api/analytics/soh/predict
 GET /api/analytics/trends
 GET /api/analytics/model-metrics
 GET /api/reuse/recommendations
@@ -57,6 +58,7 @@ WebSocket: `/ws/battery` — pushes JSON readings:
 ```json
 {
   "predictedSoh": 87.4,
+  "predictionAvailable": true,
   "predictedCapacityAh": 87.4,
   "ratedCapacityAh": 100,
   "timestamp": "2026-11-11T09:00:00Z",
@@ -68,9 +70,33 @@ WebSocket: `/ws/battery` — pushes JSON readings:
   "degradation": [{ "cycle": 0, "soh": 100, "predicted": 100 }],
   "actualVsPredicted": [{ "cycle": 0, "actual": 92.1, "predicted": 91.6 }],
   "forecast": [{ "cycle": 352, "soh": 86.2 }],
-  "featureImportance": [{ "feature": "Charge throughput (Ah)", "importance": 0.31 }]
+  "featureImportance": [{ "feature": "cycle", "importance": 0.99 }],
+  "featureCollection": {
+    "ready": true,
+    "sample_count": 120,
+    "window_seconds": 119.0,
+    "features": {
+      "cycle": 25,
+      "voltage_mean": 4.05,
+      "voltage_min": 3.96,
+      "voltage_max": 4.12,
+      "voltage_std": 0.03,
+      "current_mean": -0.003,
+      "current_min": -0.095,
+      "current_max": 0.095,
+      "current_std": 0.05,
+      "temperature_mean": 16.5,
+      "temperature_min": 13.6,
+      "temperature_max": 20.1,
+      "temperature_std": 1.1
+    }
+  }
 }
 ```
+
+Telemetry continues to be collected every second. The GET endpoint only returns the current
+time-spaced feature window and the last stored result; inference runs once when the user calls
+`POST /api/analytics/soh/predict` from the Predict SOH button.
 
 Omit `uncertainty` unless the model is calibrated; omit `actualVsPredicted` without reference
 measurements; omit `forecast` without a forecasting model. The UI renders honest empty states.
@@ -103,7 +129,7 @@ src/
 |---|---|
 | `/` | Landing — hero, features, overview metrics |
 | `/dashboard` | Live monitoring — WebSocket charts, connection/disconnection states |
-| `/analytics` | Automatic ML SOH prediction — gauge, pipeline status, trends, model metrics |
+| `/analytics` | Manual ML SOH prediction — collected features, gauge, pipeline status, trends, model metrics |
 | `/reuse` | Second-life application recommendations with safety assessment |
 | `/history` | Historical readings, filters, statistics, CSV/PDF export |
 | `/settings` | Vertical menu: general, device, model, notifications, display, about |
