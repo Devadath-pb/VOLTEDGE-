@@ -81,7 +81,11 @@ export default function Dashboard() {
             label="Battery %"
             value={live ? fmt(live.batteryPercentage, 1) : '—'}
             unit="%"
-            footnote={live?.batteryPercentageSource === 'voltage-estimate' ? 'Estimated from voltage' : 'From device SOC'}
+            footnote={live?.batteryPercentageSource === 'voltage-estimate'
+              ? 'Estimated from voltage'
+              : live?.batteryPercentageSource === 'coulomb-counted'
+                ? 'Calculated from current'
+                : 'From device SOC'}
           />
           <MetricCard icon={HeartPulse} label="SOH" value={live ? fmt(live.soh, 1) : '—'} unit="%" footnote={demoMode ? 'Simulated' : 'From ML pipeline'} />
           <MetricCard icon={Repeat} label="Cycle Count" value={live ? live.cycleCount : '—'} />

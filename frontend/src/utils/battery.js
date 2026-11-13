@@ -13,7 +13,12 @@ export function getBatteryPercentage(
 ) {
   const soc = Number(reading?.soc)
   if (Number.isFinite(soc)) {
-    return { value: clamp(soc, 0, 100), source: 'device' }
+    const source = reading?.socSource === 'coulomb_counted'
+      ? 'coulomb-counted'
+      : reading?.socSource === 'voltage_estimate'
+        ? 'voltage-estimate'
+        : 'device'
+    return { value: clamp(soc, 0, 100), source }
   }
 
   const voltage = Number(reading?.voltage)

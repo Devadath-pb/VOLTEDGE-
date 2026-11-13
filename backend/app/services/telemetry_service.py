@@ -13,6 +13,12 @@ from app.models.telemetry import Telemetry
 from app.schemas.telemetry import TelemetryCreate
 from app.services.capacity_service import CapacityService
 from app.services.cycle_service import CycleService
+from app.services.soc_service import (
+    DEFAULT_RATED_CAPACITY_MAH,
+    elapsed_since,
+    estimate_from_voltage,
+    integrate_soc,
+)
 
 
 class TelemetryService:
@@ -103,6 +109,57 @@ class TelemetryService:
             tele_data["cycle_id"] = active_cycle.id
             tele_data["battery_id"] = active_cycle.battery_id
             tele_data["phase"] = tele_data.get("phase") or active_cycle.status or tele_data.get("mode")
+
+        # Use a device-provided SOC when available. Until the OTA firmware is
+        # installed, calculate SOC from the existing voltage/current stream.
+        battery = (
+            db.query(Battery)
+            .filter(Battery.battery_id == tele_data.get("battery_id"))
+            .first()
+            if tele_data.get("battery_id")
+            else None
+        )
+        rated_capacity_mah = float(
+            battery.rated_capacity_mah
+            if battery and battery.rated_capacity_mah and battery.rated_capacity_mah > 0
+            else DEFAULT_RATED_CAPACITY_MAH
+        )
+
+        if tele_data.get("soc") is not None:
+            tele_data["soc"] = max(0.0, min(100.0, float(tele_data["soc"])))
+            tele_data["soc_method"] = "device"
+        else:
+            previous = (
+                db.query(Telemetry)
+                .filter(Telemetry.battery_id == tele_data.get("battery_id"))
+                .order_by(Telemetry.created_at.desc(), Telemetry.timestamp.desc())
+                .first()
+                if tele_data.get("battery_id")
+                else None
+            )
+            previous_soc = previous.soc if previous and previous.soc is not None else None
+            if previous_soc is None and previous is not None:
+                previous_soc = estimate_from_voltage(previous.voltage)
+
+            if previous is None or previous_soc is None:
+                tele_data["soc"] = estimate_from_voltage(tele_data.get("voltage"))
+                tele_data["soc_method"] = "voltage_estimate"
+            else:
+                elapsed_seconds = elapsed_since(previous.created_at)
+                if elapsed_seconds is None or elapsed_seconds > 300:
+                    tele_data["soc"] = estimate_from_voltage(tele_data.get("voltage"))
+                    tele_data["soc_method"] = "voltage_estimate"
+                else:
+                    tele_data["soc"] = integrate_soc(
+                        previous_soc=previous_soc,
+                        previous_current_ma=previous.current,
+                        previous_mode=previous.mode,
+                        current_ma=tele_data.get("current"),
+                        current_mode=tele_data.get("mode"),
+                        elapsed_seconds=elapsed_seconds,
+                        rated_capacity_mah=rated_capacity_mah,
+                    )
+                    tele_data["soc_method"] = "coulomb_counted"
 
         db_telemetry = Telemetry(**tele_data)
 

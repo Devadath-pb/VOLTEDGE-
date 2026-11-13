@@ -45,6 +45,8 @@ class Telemetry(Base):
 
     soc = Column(Float, nullable=True)
 
+    soc_method = Column(String(30), nullable=True)
+
     energy_wh = Column(Float, nullable=True)
 
     temperature = Column(Float)
