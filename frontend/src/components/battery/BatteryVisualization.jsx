@@ -24,7 +24,7 @@ export default function BatteryVisualization({ batteryPercentage, percentageSour
       <div className={`relative h-56 w-32 rounded-2xl border-4 border-ink/70 bg-white/60 p-1.5 ring-4 ${meta.ring}`}>
         <div className="absolute -top-2.5 left-1/2 h-3 w-12 -translate-x-1/2 rounded-t-md bg-ink/70" />
         <div className="relative h-full w-full overflow-hidden rounded-xl bg-lightmint/60">
-          {hasSoc && <motion.div
+          {hasPercentage && <motion.div
             className={`absolute bottom-0 left-0 w-full rounded-lg bg-gradient-to-t ${levelColor}`}
             initial={false}
             animate={{ height: `${level}%` }}
