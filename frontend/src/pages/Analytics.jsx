@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion'
-import { Loader2, Clock, Box, Play, Timer } from 'lucide-react'
+import { Loader2, Clock, Play, Timer } from 'lucide-react'
 import PageHeader from '../components/common/PageHeader.jsx'
 import GlassCard from '../components/common/GlassCard.jsx'
 import SOHGauge from '../components/battery/SOHGauge.jsx'
 import { LoadingState, ErrorState, DemoBadge } from '../components/common/states.jsx'
 import {
-  DegradationChart, FeatureImportanceChart,
+  DegradationChart,
 } from '../components/charts/HistoricalChart.jsx'
 import { useSOHPrediction } from '../hooks/useSOHPrediction.js'
 import { useApp } from '../context/AppContext.jsx'
@@ -26,7 +26,6 @@ export default function Analytics() {
   const featureColumns = data.featureColumns ?? []
   const measurementColumns = data.measurementColumns ?? ['voltage', 'current', 'temperature']
   const hasPredictionTrend = Array.isArray(data.degradation) && data.degradation.some((item) => item.predicted != null)
-  const featureImportance = Array.isArray(data.featureImportance) ? data.featureImportance : []
   const formatFeatureName = (name) => name.replaceAll('_', ' ')
   const formatFeatureValue = (name, value) => {
     if (value == null) return '—'
@@ -141,15 +140,6 @@ export default function Analytics() {
               <Clock className="h-10 w-10 text-primary/50" />
               <p className="font-semibold text-ink">SOH trend will appear after prediction</p>
               <p className="max-w-sm text-sm text-muted">Collect the feature window, then press Predict SOH.</p>
-            </GlassCard>}
-        {featureImportance.length > 0
-          ? <FeatureImportanceChart data={featureImportance} />
-          : <GlassCard className="flex flex-col items-center justify-center gap-3 p-10 text-center">
-              <Box className="h-10 w-10 text-primary/50" />
-              <p className="font-semibold text-ink">Feature Importance</p>
-              <p className="max-w-sm text-sm text-muted">
-                Not reported by the currently deployed model.
-              </p>
             </GlassCard>}
       </div>
 
