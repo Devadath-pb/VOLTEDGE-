@@ -17,6 +17,7 @@ from app.routers.telemetry_router import (
 )
 from app.routers.device_router import router as device_router
 from app.routers.live_router import router as live_router
+from app.routers.analytics_router import router as analytics_router
 
 app = FastAPI(
     title="VoltEdge API",
@@ -41,6 +42,7 @@ app.include_router(cycle_router)
 app.include_router(battery_cycle_router)
 app.include_router(device_router)
 app.include_router(live_router)
+app.include_router(analytics_router)
 
 
 @app.get("/")

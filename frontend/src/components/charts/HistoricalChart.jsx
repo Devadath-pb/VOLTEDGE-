@@ -25,14 +25,14 @@ function Frame({ title, subtitle, children, height = 300 }) {
 
 export function DegradationChart({ data }) {
   return (
-    <Frame title="SOH Degradation Trend" subtitle="Historical health vs model-estimated curve across cycles">
+    <Frame title="SOH Degradation Trend" subtitle="Model-estimated health across observed battery cycles">
       <LineChart data={data} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(22,163,74,0.12)" />
         <XAxis dataKey="cycle" tick={axis} stroke="rgba(22,163,74,0.25)" label={{ value: 'Cycle', position: 'insideBottomRight', offset: -4, fontSize: 10, fill: '#64748B' }} />
         <YAxis domain={[50, 105]} tick={axis} stroke="rgba(22,163,74,0.25)" width={44} unit="%" />
         <Tooltip contentStyle={tooltipStyle} formatter={(v, n) => [`${Number(v).toFixed(1)}%`, n]} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Line type="monotone" dataKey="soh" name="Measured SOH" stroke="#14532D" strokeWidth={2.5} dot={false} />
+        <Line type="monotone" dataKey="soh" name="Measured SOH (when available)" stroke="#14532D" strokeWidth={2.5} dot={false} />
         <Line type="monotone" dataKey="predicted" name="Model estimate" stroke="#16A34A" strokeWidth={2} dot={false} strokeDasharray="6 4" />
       </LineChart>
     </Frame>
