@@ -67,7 +67,9 @@ export default function Analytics() {
             {[
               ['Predicted SOH', data.predictionAvailable ? `${fmt(data.predictedSoh, 1)}%` : 'Not predicted yet'],
               ['Predicted capacity', data.predictedCapacityAh != null ? `≈ ${fmt(data.predictedCapacityAh, 1)} Ah${data.ratedCapacityAh ? ` of ${data.ratedCapacityAh} Ah` : ''}` : '—'],
-              ['Prediction timestamp', data.predictionAvailable ? fmtDateTime(data.predictionTimestamp ?? data.timestamp) : 'Not predicted yet'],
+              ['Last manual prediction', data.predictionAvailable
+                ? (data.predictionTimestamp ? fmtDateTime(data.predictionTimestamp) : 'Stored result')
+                : 'Not predicted yet'],
               ['ML model', data.model ?? '—'],
               ['Health category', data.predictionAvailable ? cat.label : 'Unknown'],
               ...(hasUncertainty ? [['Prediction uncertainty', `± ${fmt(data.uncertainty, 2)}% (calibrated)`]] : []),
