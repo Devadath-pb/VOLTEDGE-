@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,6 +20,10 @@ from app.routers.telemetry_router import (
 from app.routers.device_router import router as device_router
 from app.routers.live_router import router as live_router
 from app.routers.analytics_router import router as analytics_router
+from app.services.soh_model_service import SOHModelUnavailable, load_soh_artifact
+
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="VoltEdge API",
@@ -43,6 +49,18 @@ app.include_router(battery_cycle_router)
 app.include_router(device_router)
 app.include_router(live_router)
 app.include_router(analytics_router)
+
+
+@app.on_event("startup")
+def warm_soh_model():
+    """Load the model before the first user request pays the startup cost."""
+    try:
+        load_soh_artifact()
+        logger.info("SOH model loaded and ready")
+    except SOHModelUnavailable as exc:
+        # Keep the API available for live telemetry; analytics will return a
+        # clear 503 until the model artifact/dependencies are available.
+        logger.warning("SOH model is not ready: %s", exc)
 
 
 @app.get("/")
