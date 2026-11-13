@@ -21,7 +21,7 @@ export function AppProvider({ children }) {
     chartPoints: 40,
     deviceName: 'Voltedge BMS-01',
     protocol: 'WebSocket / serial bridge',
-    pollingInterval: 2,
+    pollingInterval: 1,
   })
 
   const setDemoMode = useCallback((v) => setDemoModeState(v), [])

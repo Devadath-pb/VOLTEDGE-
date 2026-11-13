@@ -20,7 +20,9 @@ float cutoffVoltage = DISCHARGE_CUTOFF_VOLTAGE;
 
 String activeCycleId = "";
 
-const unsigned long TELEMETRY_INTERVAL = 3000;
+// One-second samples keep the live SOC estimate responsive. The backend
+// still rejects stale gaps and clamps the integrated value to 0–100%.
+const unsigned long TELEMETRY_INTERVAL = 1000;
 unsigned long lastTelemetryTime = 0;
 int consecutiveCutoffReadings = 0;
 
