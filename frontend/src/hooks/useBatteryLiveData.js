@@ -14,6 +14,7 @@ export function useBatteryLiveData(maxPoints = 40) {
   const maxRef = useRef(maxPoints)
   maxRef.current = maxPoints
   const errorShownRef = useRef(false)
+  const pollInFlightRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -42,8 +43,12 @@ export function useBatteryLiveData(maxPoints = 40) {
     }
 
     const poll = async () => {
+      if (pollInFlightRef.current) return
+      pollInFlightRef.current = true
       try {
-        const payload = await getJSON(endpoints.live)
+        // Render can take several seconds to wake from an idle state. Give
+        // the first live request enough time without spawning overlapping polls.
+        const payload = await getJSON(endpoints.live, undefined, { timeout: 45000 })
         if (cancelled) return
         errorShownRef.current = false
         if (payload.reading) push(payload.reading)
@@ -64,6 +69,8 @@ export function useBatteryLiveData(maxPoints = 40) {
           )
           errorShownRef.current = true
         }
+      } finally {
+        pollInFlightRef.current = false
       }
     }
 
