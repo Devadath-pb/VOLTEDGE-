@@ -1,75 +1,56 @@
 import {
-  ResponsiveContainer, AreaChart, Area, Line, XAxis, YAxis,
-  CartesianGrid, Tooltip, Legend, ReferenceLine,
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis,
+  CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import { fmtTime } from '../../utils/format.js'
 
 const GREEN = '#16A34A'
 const DARK = '#14532D'
 
-const chartTooltip = {
-  background: 'rgba(255,255,255,0.92)',
-  color: '#102A22',
-  border: '1px solid rgba(255,255,255,0.98)',
-  borderRadius: 14,
-  boxShadow: '0 14px 32px rgba(21,128,61,0.16)',
-  backdropFilter: 'blur(14px)',
-  fontSize: 12,
-}
-
 export default function LiveLineChart({
   title, data, dataKey, xKey = 'timestamp', unit = '',
   color = GREEN, height = 260, domain, secondKey, secondColor = DARK, demo,
 }) {
   if (!data?.length) return null
-  const gradientId = `live-gradient-${dataKey.replace(/[^a-z0-9]/gi, '-')}`
   return (
-    <div className="glass glass-hover p-5 sm:p-6">
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <div>
-          <p className="label-caps">Live signal</p>
-          <h3 className="mt-1 text-lg font-black tracking-[-0.035em] text-ink">{title}</h3>
-        </div>
-        <span className="rounded-full bg-lightmint px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-darkgreen">{unit}</span>
+    <div className="glass glass-hover p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-sm font-bold text-ink">{title}</h3>
+        <span className="text-xs font-semibold text-muted">{unit}</span>
       </div>
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-            <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={color} stopOpacity={0.26} />
-                <stop offset="100%" stopColor={color} stopOpacity={0.02} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} strokeDasharray="4 7" stroke="rgba(16,42,34,0.10)" />
+          <LineChart data={data} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(22,163,74,0.12)" />
             <XAxis
               dataKey={xKey}
               tickFormatter={(v) => fmtTime(typeof v === 'string' ? v : new Date(v).toISOString())}
               tick={{ fontSize: 11, fill: '#64748B' }}
-              axisLine={false}
-              tickLine={false}
+              stroke="rgba(22,163,74,0.25)"
               minTickGap={40}
             />
             <YAxis
               domain={domain ?? ['auto', 'auto']}
               tick={{ fontSize: 11, fill: '#64748B' }}
-              axisLine={false}
-              tickLine={false}
+              stroke="rgba(22,163,74,0.25)"
               width={54}
               unit={unit}
             />
             <Tooltip
-              contentStyle={chartTooltip}
-              cursor={{ stroke: color, strokeOpacity: 0.32, strokeDasharray: '4 4' }}
+              contentStyle={{
+                background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.9)', borderRadius: 12,
+                boxShadow: '0 8px 24px rgba(22,163,74,0.15)', fontSize: 12,
+              }}
               labelFormatter={(v) => fmtTime(typeof v === 'string' ? v : new Date(v).toISOString())}
               formatter={(value, name) => [`${Number(value).toFixed(2)} ${unit}`, name]}
             />
-            <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
-            <Area
+            <Legend wrapperStyle={{ fontSize: 12 }} />
+            <Line
               type="monotone" dataKey={dataKey} name={title.replace(/ vs Time/i, '')}
-              stroke={color} strokeWidth={2.5} fill={`url(#${gradientId})`} dot={false}
+              stroke={color} strokeWidth={2.5} dot={false}
               isAnimationActive animationDuration={500}
-              activeDot={{ r: 5, fill: '#fff', stroke: color, strokeWidth: 3 }}
+              activeDot={{ r: 4, fill: color }}
             />
             {secondKey && (
               <Line
@@ -78,8 +59,7 @@ export default function LiveLineChart({
                 isAnimationActive animationDuration={500}
               />
             )}
-            {domain?.[0] != null && domain?.[1] != null && <ReferenceLine y={domain[0]} stroke="rgba(21,128,61,0.08)" />}
-          </AreaChart>
+          </LineChart>
         </ResponsiveContainer>
       </div>
       {demo && <p className="mt-2 text-right text-[10px] font-semibold uppercase tracking-wider text-amber-600">Simulated demo data</p>}

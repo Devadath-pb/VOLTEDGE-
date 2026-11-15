@@ -9,9 +9,9 @@ export default function MobileNavigation({ open, onClose, source }) {
       {open && (
         <motion.div
           initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-          className="glass-strong mx-auto mt-2 max-w-[1440px] p-3 lg:hidden"
+          className="glass-strong mx-auto mt-2 max-w-7xl p-3 lg:hidden"
         >
-            <ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+          <ul className="grid grid-cols-2 gap-1.5">
             {navItems.map((item) => (
               <li key={item.to}>
                 <NavLink
@@ -19,7 +19,7 @@ export default function MobileNavigation({ open, onClose, source }) {
                   end={item.to === '/'}
                   onClick={onClose}
                   className={({ isActive }) =>
-                    `block rounded-[9px] px-4 py-3 text-center text-xs font-black uppercase tracking-[0.12em] transition ${
+                    `block rounded-xl px-4 py-3 text-center text-sm font-semibold transition ${
                       isActive ? 'pill-active' : 'text-muted hover:bg-lightmint'
                     }`
                   }

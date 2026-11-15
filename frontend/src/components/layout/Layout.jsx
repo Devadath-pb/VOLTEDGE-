@@ -23,10 +23,10 @@ export default function Layout({ children }) {
   }, [location.pathname])
 
   return (
-    <div className="app-shell flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col">
       <Navbar source={source} />
       {demoMode && (
-        <div className="fixed inset-x-0 top-[76px] z-40 flex justify-center px-4 sm:top-[88px]">
+        <div className="fixed inset-x-0 top-[72px] z-40 flex justify-center px-4 sm:top-[80px]">
           <DemoBadge className="shadow-sm" />
         </div>
       )}
@@ -34,12 +34,12 @@ export default function Layout({ children }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.25 }}
-        className="page-frame"
+        className="mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-28 sm:px-6 sm:pt-32"
       >
         {children}
       </motion.main>
-      <footer className="border-t border-ink/10 px-6 py-5 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-muted">
-        Voltedge / live battery intelligence / {new Date().getFullYear()}
+      <footer className="border-t border-primary/10 py-6 text-center text-xs text-muted">
+        Voltedge · Battery Health Monitoring & Reuse System · {new Date().getFullYear()}
       </footer>
       <Toasts />
     </div>

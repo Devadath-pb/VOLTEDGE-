@@ -5,11 +5,11 @@ export default function SOHGauge({ value = 0, size = 220, stroke = 16 }) {
   const c = 2 * Math.PI * r
   const hasValue = value != null && Number.isFinite(Number(value))
   const pct = hasValue ? Math.max(0, Math.min(100, Number(value))) : 0
-  const color = pct >= 80 ? '#6B8D12' : pct >= 65 ? '#F2B34B' : '#E66B5F'
+  const color = pct >= 80 ? '#16A34A' : pct >= 65 ? '#F59E0B' : '#EF4444'
   return (
     <div className="relative" style={{ width: size, height: size }} role="img" aria-label={hasValue ? `Predicted SOH ${pct.toFixed(1)} percent` : 'SOH prediction not available'}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#E3E9DA" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#DCFCE7" strokeWidth={stroke} />
         <motion.circle
           cx={size / 2} cy={size / 2} r={r} fill="none"
           stroke={color} strokeWidth={stroke} strokeLinecap="round"
