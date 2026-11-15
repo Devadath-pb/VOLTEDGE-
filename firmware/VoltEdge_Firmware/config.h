@@ -32,6 +32,8 @@
 // Tune these values for the actual battery chemistry and calibrated limits.
 #define SOC_EMPTY_VOLTAGE 3.0f
 #define SOC_FULL_VOLTAGE  4.2f
+#define SOC_DEFAULT_CAPACITY_MAH 3600.0f
+#define SOC_MAX_INTEGRATION_GAP_SECONDS 300.0f
 
 // WiFi Credentials (defined in config.cpp)
 extern const char* WIFI_SSID;

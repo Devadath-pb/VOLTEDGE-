@@ -21,7 +21,8 @@ static void beginRequest(HTTPClient& http, const String& url)
 {
     secureClient.setInsecure();
     http.begin(secureClient, url);
-    http.setTimeout(5000);
+    // Render may need time to wake from its free-tier idle state.
+    http.setTimeout(20000);
 }
 
 static void addDeviceHeaders(HTTPClient& http)
@@ -264,7 +265,10 @@ bool sendBatteryData(const BatteryData& data)
     if (isnan(data.soc))
         doc["soc"] = nullptr;
     else
+    {
         doc["soc"] = data.soc;
+        doc["soc_method"] = "device";
+    }
 
     if (isnan(data.temperature))
     {

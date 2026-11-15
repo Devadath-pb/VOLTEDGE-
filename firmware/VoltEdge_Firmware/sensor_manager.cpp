@@ -8,6 +8,10 @@
 
 Adafruit_INA219 ina219;
 
+static float runningSoc = NAN;
+static float previousSignedCurrentMa = 0.0f;
+static unsigned long previousSocTimestamp = 0;
+
 float estimateStateOfCharge(float voltage)
 {
     if (isnan(voltage))
@@ -24,6 +28,55 @@ float estimateStateOfCharge(float voltage)
         percentage = 100.0f;
 
     return percentage;
+}
+
+static float signedCurrentForMode(float currentMa, const String& mode)
+{
+    const float magnitude = fabs(currentMa);
+    if (mode == "CHARGING")
+        return magnitude;
+    if (mode == "DISCHARGING")
+        return -magnitude;
+    return 0.0f;
+}
+
+void updateStateOfCharge(BatteryData& data, float ratedCapacityMah)
+{
+    const float capacityMah = ratedCapacityMah > 0.0f
+        ? ratedCapacityMah
+        : SOC_DEFAULT_CAPACITY_MAH;
+    const float voltageSoc = estimateStateOfCharge(data.voltage);
+
+    if (isnan(runningSoc) || previousSocTimestamp == 0)
+    {
+        runningSoc = voltageSoc;
+    }
+    else
+    {
+        const unsigned long elapsedMs = data.timestamp - previousSocTimestamp;
+        const float elapsedSeconds = elapsedMs / 1000.0f;
+        if (elapsedSeconds <= 0.0f || elapsedSeconds > SOC_MAX_INTEGRATION_GAP_SECONDS)
+        {
+            // Re-anchor after a long disconnect/reboot gap instead of integrating
+            // an unknown amount of current.
+            runningSoc = voltageSoc;
+        }
+        else
+        {
+            const float currentSignedMa = signedCurrentForMode(data.current, data.mode);
+            const float averageCurrentMa = (previousSignedCurrentMa + currentSignedMa) / 2.0f;
+            const float deltaPercentage = averageCurrentMa * elapsedSeconds / (capacityMah * 36.0f);
+            runningSoc += deltaPercentage;
+            if (runningSoc < 0.0f)
+                runningSoc = 0.0f;
+            if (runningSoc > 100.0f)
+                runningSoc = 100.0f;
+        }
+    }
+
+    previousSignedCurrentMa = signedCurrentForMode(data.current, data.mode);
+    previousSocTimestamp = data.timestamp;
+    data.soc = runningSoc;
 }
 
 bool sensorInit()

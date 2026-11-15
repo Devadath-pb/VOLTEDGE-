@@ -225,6 +225,10 @@ void loop()
             }
         }
 
+        // SOC is calculated on the ESP32 from time-spaced current samples.
+        // The web app displays this device-reported value without recalculating it.
+        updateStateOfCharge(battery, storedRatedCapacity);
+
         // Print Telemetry Block & Send to Backend
         Serial.println("-----------------------------------");
         Serial.print("Voltage     : ");
@@ -242,7 +246,7 @@ void loop()
         else
         {
             Serial.print(battery.soc, 1);
-            Serial.println(" % (estimated)");
+            Serial.println(" % (device coulomb count)");
         }
 
         Serial.print("Temperature : ");
