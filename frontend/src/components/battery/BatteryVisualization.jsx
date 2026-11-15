@@ -22,9 +22,9 @@ export default function BatteryVisualization({ batteryPercentage, percentageSour
       </div>
 
       <div className="flex flex-1 items-center justify-center gap-7">
-        <div className="relative h-52 w-28 rounded-[12px] border-2 border-ink bg-white p-1.5 shadow-[5px_5px_0_rgba(23,33,27,0.08)]">
-          <div className="absolute -top-3 left-1/2 h-3 w-10 -translate-x-1/2 rounded-t-[4px] bg-ink" />
-          <div className="relative h-full w-full overflow-hidden rounded-[7px] bg-[#edf2e9]">
+        <div className="relative h-52 w-28 rounded-[18px] border-2 border-green-900/30 bg-white/80 p-1.5 shadow-[0_14px_28px_rgba(21,128,61,0.12)]">
+          <div className="absolute -top-3 left-1/2 h-3 w-10 -translate-x-1/2 rounded-t-[5px] bg-green-900/60" />
+          <div className="relative h-full w-full overflow-hidden rounded-[12px] bg-green-50">
             {hasPercentage && <motion.div className={`absolute bottom-0 left-0 w-full bg-gradient-to-t ${levelColor}`} initial={false} animate={{ height: `${level}%` }} transition={{ type: 'spring', stiffness: 60, damping: 14 }} />}
             <div className="absolute inset-0 flex items-center justify-center"><span className="tabular-nums text-3xl font-black text-ink">{hasPercentage ? level.toFixed(0) : '—'}{hasPercentage && <span className="text-base">%</span>}</span></div>
           </div>

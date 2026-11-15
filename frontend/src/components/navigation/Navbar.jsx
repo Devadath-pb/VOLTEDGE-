@@ -40,7 +40,7 @@ export default function Navbar({ source }) {
       <nav className="site-nav" aria-label="Primary">
         <BrandMark />
 
-        <div className="mx-1 hidden h-7 w-px bg-white/10 lg:block" />
+        <div className="mx-1 hidden h-7 w-px bg-green-900/10 lg:block" />
 
         <ul className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex">
           {navItems.map((item) => (
@@ -64,10 +64,10 @@ export default function Navbar({ source }) {
             <button
               onClick={() => { setNotifOpen((v) => !v); setProfileOpen(false) }}
               aria-label="Notifications" aria-expanded={notifOpen}
-              className="relative rounded-[9px] p-2 text-white/65 transition hover:bg-white/10 hover:text-white"
+              className="relative rounded-full p-2 text-muted transition hover:bg-lightmint hover:text-darkgreen"
             >
               <Bell className="h-[18px] w-[18px]" />
-              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-lime" />
+              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-bright" />
             </button>
             <AnimatePresence>
               {notifOpen && (
@@ -81,7 +81,7 @@ export default function Navbar({ source }) {
           </div>
 
           <div className="relative hidden sm:block">
-            <button onClick={() => { setProfileOpen((v) => !v); setNotifOpen(false) }} aria-label="User menu" aria-expanded={profileOpen} className="flex items-center gap-1 rounded-[9px] p-1.5 text-white/65 transition hover:bg-white/10 hover:text-white">
+              <button onClick={() => { setProfileOpen((v) => !v); setNotifOpen(false) }} aria-label="User menu" aria-expanded={profileOpen} className="flex items-center gap-1 rounded-full p-1.5 text-muted transition hover:bg-lightmint hover:text-darkgreen">
               <CircleUserRound className="h-[19px] w-[19px]" /> <ChevronDown className="h-3 w-3" />
             </button>
             <AnimatePresence>
@@ -95,7 +95,7 @@ export default function Navbar({ source }) {
             </AnimatePresence>
           </div>
 
-          <button onClick={() => setMobileOpen((v) => !v)} aria-label="Toggle navigation menu" aria-expanded={mobileOpen} className="rounded-[9px] p-2 text-white lg:hidden hover:bg-white/10">
+          <button onClick={() => setMobileOpen((v) => !v)} aria-label="Toggle navigation menu" aria-expanded={mobileOpen} className="rounded-full p-2 text-muted lg:hidden hover:bg-lightmint hover:text-darkgreen">
             {mobileOpen ? <X className="h-[18px] w-[18px]" /> : <Menu className="h-[18px] w-[18px]" />}
           </button>
         </div>

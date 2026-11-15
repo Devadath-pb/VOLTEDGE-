@@ -92,18 +92,18 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-5 xl:grid-cols-2">
+      <div className="mt-7 grid gap-5 xl:grid-cols-12">
         {series.length ? (
           <>
-            <LiveLineChart title="Voltage vs Time" data={series} dataKey="voltage" unit="V" demo={source === 'demo'} />
-            <LiveLineChart title="Current vs Time" data={series} dataKey="current" unit="A" color="#22C55E" demo={source === 'demo'} />
-            <LiveLineChart title="Temperature vs Time" data={series} dataKey="temperature" unit="°C" color="#F59E0B" domain={[15, 45]} demo={source === 'demo'} />
+            <div className="xl:col-span-7"><LiveLineChart title="Voltage vs Time" data={series} dataKey="voltage" unit="V" height={300} demo={source === 'demo'} /></div>
+            <div className="xl:col-span-5"><LiveLineChart title="Current vs Time" data={series} dataKey="current" unit="A" color="#22C55E" height={300} demo={source === 'demo'} /></div>
+            <div className="xl:col-span-5"><LiveLineChart title="Temperature vs Time" data={series} dataKey="temperature" unit="°C" color="#F59E0B" domain={[15, 45]} demo={source === 'demo'} /></div>
             {series.some((point) => point.soc != null)
-              ? <LiveLineChart title="SOC vs Time" data={series} dataKey="soc" unit="%" color="#14532D" domain={[0, 100]} demo={source === 'demo'} />
-              : <EmptyState title="SOC is not available yet" hint="Add SOC to the ESP32 telemetry payload or provide it from the backend model." />}
+              ? <div className="xl:col-span-7"><LiveLineChart title="SOC vs Time" data={series} dataKey="soc" unit="%" color="#14532D" domain={[0, 100]} height={300} demo={source === 'demo'} /></div>
+              : <div className="xl:col-span-7"><EmptyState title="SOC is not available yet" hint="Add SOC to the ESP32 telemetry payload or provide it from the backend model." /></div>}
           </>
         ) : (
-          <div className="xl:col-span-2">
+          <div className="xl:col-span-12">
             <EmptyState title="Waiting for live readings" hint="Connect the battery monitoring device or enable demo mode to see charts." />
           </div>
         )}
