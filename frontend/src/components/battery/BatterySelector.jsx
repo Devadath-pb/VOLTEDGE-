@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Battery, Check, ChevronDown, Loader2, Plus, X } from 'lucide-react'
+import { createPortal } from 'react-dom'
 import { useApp } from '../../context/AppContext.jsx'
 
 const emptyForm = {
@@ -46,6 +47,13 @@ export default function BatterySelector({ mobile = false }) {
   const [addOpen, setAddOpen] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [formError, setFormError] = useState('')
+
+  useEffect(() => {
+    if (!addOpen) return undefined
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = previousOverflow }
+  }, [addOpen])
 
   const openAdd = () => {
     setOpen(false)
@@ -151,56 +159,59 @@ export default function BatterySelector({ mobile = false }) {
       </div>
 
       <AnimatePresence>
-        {addOpen && (
+        {addOpen && createPortal(
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-end justify-center bg-ink/30 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+            className="fixed inset-0 z-[100] overflow-y-auto bg-ink/30 p-4 backdrop-blur-sm sm:p-6"
             onClick={() => setAddOpen(false)}
           >
-            <motion.form
-              initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 24 }}
-              onSubmit={submit}
-              onClick={(event) => event.stopPropagation()}
-              className="glass-strong max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-glass p-6 sm:rounded-glass sm:p-8"
-              aria-label="Add battery"
-            >
-              <div className="mb-6 flex items-start justify-between gap-4">
-                <div>
-                  <p className="label-caps">Battery library</p>
-                  <h2 className="mt-1 font-poppins text-2xl font-bold text-ink">Add a battery</h2>
-                  <p className="mt-1 text-sm text-muted">Save the battery to your account and make it the selected monitor.</p>
+            <div className="flex min-h-full items-center justify-center py-2 sm:py-4">
+              <motion.form
+                initial={{ opacity: 0, y: 24, scale: 0.985 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.985 }}
+                onSubmit={submit}
+                onClick={(event) => event.stopPropagation()}
+                className="glass-strong max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto overscroll-contain rounded-glass p-6 sm:max-h-[calc(100dvh-3rem)] sm:p-8"
+                aria-label="Add battery"
+              >
+                <div className="mb-6 flex items-start justify-between gap-4">
+                  <div>
+                    <p className="label-caps">Battery library</p>
+                    <h2 className="mt-1 font-poppins text-2xl font-bold text-ink">Add a battery</h2>
+                    <p className="mt-1 text-sm text-muted">Save the battery to your account and make it the selected monitor.</p>
+                  </div>
+                  <button type="button" onClick={() => setAddOpen(false)} className="rounded-full border border-white/80 bg-white/70 p-2 text-muted hover:text-ink" aria-label="Close add battery dialog">
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
-                <button type="button" onClick={() => setAddOpen(false)} className="rounded-full border border-white/80 bg-white/70 p-2 text-muted hover:text-ink" aria-label="Close add battery dialog">
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Serial number" name="serial_number" form={form} setForm={setForm} required />
-                <Field label="Manufacturer" name="manufacturer" form={form} setForm={setForm} required />
-                <Field label="Model" name="model" form={form} setForm={setForm} required />
-                <Field label="Chemistry" name="chemistry" form={form} setForm={setForm} required />
-                <Field label="Rated capacity (mAh)" name="rated_capacity_mah" form={form} setForm={setForm} required type="number" step="1" />
-                <Field label="Nominal voltage (V)" name="nominal_voltage" form={form} setForm={setForm} required type="number" step="0.01" />
-              </div>
-              <div className="mt-5 border-t border-primary/10 pt-5">
-                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-muted">Dates (optional)</p>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <Field label="Manufactured" name="manufacture_date" form={form} setForm={setForm} type="date" />
-                  <Field label="Purchased" name="purchase_date" form={form} setForm={setForm} type="date" />
-                  <Field label="Installed" name="installation_date" form={form} setForm={setForm} type="date" />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Serial number" name="serial_number" form={form} setForm={setForm} required />
+                  <Field label="Manufacturer" name="manufacturer" form={form} setForm={setForm} required />
+                  <Field label="Model" name="model" form={form} setForm={setForm} required />
+                  <Field label="Chemistry" name="chemistry" form={form} setForm={setForm} required />
+                  <Field label="Rated capacity (mAh)" name="rated_capacity_mah" form={form} setForm={setForm} required type="number" step="1" />
+                  <Field label="Nominal voltage (V)" name="nominal_voltage" form={form} setForm={setForm} required type="number" step="0.01" />
                 </div>
-              </div>
-              {formError && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{formError}</p>}
-              <div className="mt-7 flex flex-col-reverse justify-end gap-3 sm:flex-row">
-                <button type="button" onClick={() => setAddOpen(false)} className="btn-secondary !px-5 !py-2.5">Cancel</button>
-                <button type="submit" className="btn-primary !px-5 !py-2.5" disabled={batteryActionLoading}>
-                  {batteryActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                  Add battery
-                </button>
-              </div>
-            </motion.form>
-          </motion.div>
+                <div className="mt-5 border-t border-primary/10 pt-5">
+                  <p className="mb-3 text-xs font-bold uppercase tracking-wider text-muted">Dates (optional)</p>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <Field label="Manufactured" name="manufacture_date" form={form} setForm={setForm} type="date" />
+                    <Field label="Purchased" name="purchase_date" form={form} setForm={setForm} type="date" />
+                    <Field label="Installed" name="installation_date" form={form} setForm={setForm} type="date" />
+                  </div>
+                </div>
+                {formError && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{formError}</p>}
+                <div className="mt-7 flex flex-col-reverse justify-end gap-3 sm:flex-row">
+                  <button type="button" onClick={() => setAddOpen(false)} className="btn-secondary !px-5 !py-2.5">Cancel</button>
+                  <button type="submit" className="btn-primary !px-5 !py-2.5" disabled={batteryActionLoading}>
+                    {batteryActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    Add battery
+                  </button>
+                </div>
+              </motion.form>
+            </div>
+          </motion.div>,
+          document.body,
         )}
       </AnimatePresence>
     </>

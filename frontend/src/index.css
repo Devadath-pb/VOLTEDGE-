@@ -73,6 +73,24 @@ body {
 .recharts-surface { overflow: visible; }
 .recharts-default-legend { font-size: 12px !important; }
 
+/* Live charts draw into the next reading instead of snapping between samples. */
+.chart-trace-surface .recharts-line-curve {
+  transition: d 850ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.chart-trace-surface .volt-chart-head {
+  animation: volt-chart-head 1.8s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes volt-chart-head {
+  0%, 100% { opacity: .72; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.22); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chart-trace-surface .recharts-line-curve { transition: none; }
+  .chart-trace-surface .volt-chart-head { animation: none; }
+}
+
 /* Battery charge animation */
 @keyframes volt-pulse {
   0%, 100% { opacity: 1; }

@@ -1,6 +1,6 @@
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis,
-  CartesianGrid, Tooltip, Legend,
+  CartesianGrid, Tooltip, Legend, ReferenceDot,
 } from 'recharts'
 import { fmtTime } from '../../utils/format.js'
 
@@ -12,8 +12,10 @@ export default function LiveLineChart({
   color = GREEN, height = 260, domain, secondKey, secondColor = DARK, demo,
 }) {
   if (!data?.length) return null
+  const latest = data[data.length - 1]
+  const latestValue = latest?.[dataKey]
   return (
-    <div className="glass glass-hover p-5">
+    <div className="glass glass-hover chart-trace-surface p-5">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-bold text-ink">{title}</h3>
         <span className="text-xs font-semibold text-muted">{unit}</span>
@@ -49,14 +51,26 @@ export default function LiveLineChart({
             <Line
               type="monotone" dataKey={dataKey} name={title.replace(/ vs Time/i, '')}
               stroke={color} strokeWidth={2.5} dot={false}
-              isAnimationActive animationDuration={500}
+              isAnimationActive animationBegin={40} animationDuration={850} animationEasing="ease-out"
               activeDot={{ r: 4, fill: color }}
             />
             {secondKey && (
               <Line
                 type="monotone" dataKey={secondKey} name="Secondary"
                 stroke={secondColor} strokeWidth={2} dot={false} strokeDasharray="5 4"
-                isAnimationActive animationDuration={500}
+                isAnimationActive animationBegin={40} animationDuration={850} animationEasing="ease-out"
+              />
+            )}
+            {latest && latestValue != null && (
+              <ReferenceDot
+                className="volt-chart-head"
+                x={latest[xKey]}
+                y={latestValue}
+                r={4}
+                fill={color}
+                stroke="#FFFFFF"
+                strokeWidth={2}
+                isFront
               />
             )}
           </LineChart>
