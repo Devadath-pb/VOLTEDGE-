@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -64,7 +65,14 @@ def create_battery(
     db: Session = Depends(get_db),
     owner_id: UUID = Depends(get_current_user_id),
 ):
-    return BatteryService.create_battery(db, battery, owner_id)
+    try:
+        return BatteryService.create_battery(db, battery, owner_id)
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A battery with this serial number already exists.",
+        ) from exc
 
 
 @router.get(

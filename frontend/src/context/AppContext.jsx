@@ -166,12 +166,16 @@ export function AppProvider({ children }) {
         created = await postJSON(endpoints.batteries, payload)
         await refreshBatteries({ silent: true })
       }
-      await selectBattery(created)
+      const activated = await selectBattery(created)
+      if (!activated && !demoMode) {
+        await refreshBatteries({ silent: true })
+        pushToast('Battery was added, but could not be selected automatically. Choose it from the battery list.', 'info')
+      }
       pushToast(`${created.model || created.serial_number} was added.`, 'success')
       return created
     } catch (error) {
       pushToast(`Could not add battery: ${error.message}`, 'error')
-      return null
+      throw error
     } finally {
       setBatteryActionLoading(false)
     }

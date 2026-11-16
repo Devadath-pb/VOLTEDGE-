@@ -78,8 +78,19 @@ export default function BatterySelector({ mobile = false }) {
       setFormError('Complete all required battery details before saving.')
       return
     }
-    const created = await addBattery(payload)
-    if (created) setAddOpen(false)
+    try {
+      const created = await addBattery(payload)
+      if (created) setAddOpen(false)
+    } catch (error) {
+      const message = error.statusCode === 401
+        ? 'Your session has expired. Sign in again, then add the battery.'
+        : error.statusCode === 403
+          ? 'You do not have permission to add batteries to this account.'
+          : error.statusCode === 409
+            ? 'This serial number is already registered. Use a different serial number.'
+            : error.message || 'The battery could not be added. Check the details and try again.'
+      setFormError(message)
+    }
   }
 
   const label = selectedBattery?.model || selectedBattery?.serial_number || 'Select battery'

@@ -22,10 +22,13 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (res) => res,
   (error) => {
-    const message =
-      error?.response?.data?.detail ||
-      error?.message ||
-      'Unknown backend error'
+    const detail = error?.response?.data?.detail
+    const message = Array.isArray(detail)
+      ? detail.map((item) => {
+        const field = Array.isArray(item?.loc) ? item.loc.at(-1) : 'field'
+        return `${field}: ${item?.msg || 'invalid value'}`
+      }).join('; ')
+      : detail || error?.message || 'Unknown backend error'
     const normalized = new Error(message)
     normalized.statusCode = error?.response?.status
     return Promise.reject(normalized)
