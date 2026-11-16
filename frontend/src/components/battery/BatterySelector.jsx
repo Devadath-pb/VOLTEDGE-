@@ -169,8 +169,8 @@ export default function BatterySelector({ mobile = false }) {
         </AnimatePresence>
       </div>
 
-      <AnimatePresence>
-        {addOpen && createPortal(
+      {addOpen && createPortal(
+        <AnimatePresence>
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] overflow-y-auto bg-ink/30 p-4 backdrop-blur-sm sm:p-6"
@@ -221,10 +221,10 @@ export default function BatterySelector({ mobile = false }) {
                 </div>
               </motion.form>
             </div>
-          </motion.div>,
-          document.body,
-        )}
-      </AnimatePresence>
+          </motion.div>
+        </AnimatePresence>,
+        document.body,
+      )}
     </>
   )
 }
