@@ -39,6 +39,7 @@ export const endpoints = {
   batteries: '/batteries/',
   activeBattery: '/batteries/active',
   setActiveBattery: (id) => `/batteries/${id}/set-active`,
+  provisionDeviceKey: (id) => `/batteries/${id}/device-key`,
   live: '/api/battery/live',
   status: '/api/battery/status',
   history: '/api/battery/history',

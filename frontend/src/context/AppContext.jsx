@@ -150,10 +150,12 @@ export function AppProvider({ children }) {
     }
   }, [demoMode, pushToast, rememberBattery])
 
-  const addBattery = useCallback(async (payload) => {
+  const addBattery = useCallback(async (payload, { provisionDevice = false, deviceName = 'VoltEdge ESP32-C3' } = {}) => {
     setBatteryActionLoading(true)
     try {
       let created
+      let deviceKey = null
+      let provisionError = null
       if (demoMode) {
         created = {
           ...payload,
@@ -166,13 +168,29 @@ export function AppProvider({ children }) {
         created = await postJSON(endpoints.batteries, payload)
         await refreshBatteries({ silent: true })
       }
+      if (provisionDevice) {
+        if (demoMode) {
+          provisionError = new Error('Device keys are generated only when the live backend is connected.')
+        } else {
+          try {
+            const provisioned = await postJSON(
+              endpoints.provisionDeviceKey(created.battery_id),
+              { name: deviceName || 'VoltEdge ESP32-C3' },
+            )
+            deviceKey = provisioned.device_key
+          } catch (error) {
+            provisionError = error
+            pushToast(`Battery added, but device key generation failed: ${error.message}`, 'error')
+          }
+        }
+      }
       const activated = await selectBattery(created)
       if (!activated && !demoMode) {
         await refreshBatteries({ silent: true })
         pushToast('Battery was added, but could not be selected automatically. Choose it from the battery list.', 'info')
       }
       pushToast(`${created.model || created.serial_number} was added.`, 'success')
-      return created
+      return { battery: created, deviceKey, provisionError }
     } catch (error) {
       pushToast(`Could not add battery: ${error.message}`, 'error')
       throw error
