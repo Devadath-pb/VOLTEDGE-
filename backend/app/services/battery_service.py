@@ -11,26 +11,34 @@ from app.schemas.battery import BatteryCreate
 class BatteryService:
 
     @staticmethod
-    def get_all_batteries(db: Session):
-
-        return db.query(Battery).all()
+    def get_all_batteries(db: Session, owner_id: UUID):
+        return db.query(Battery).filter(Battery.owner_id == owner_id).order_by(Battery.created_at.asc()).all()
 
     @staticmethod
-    def get_active_battery(db: Session):
+    def get_active_battery(db: Session, owner_id: UUID):
         """Fetch the currently active battery."""
-        active = db.query(Battery).filter(Battery.is_active == True).first()
+        active = db.query(Battery).filter(
+            Battery.owner_id == owner_id,
+            Battery.is_active.is_(True),
+        ).first()
         if not active:
-            active = db.query(Battery).first()
+            active = db.query(Battery).filter(Battery.owner_id == owner_id).order_by(Battery.created_at.asc()).first()
         return active
 
     @staticmethod
-    def set_active_battery(db: Session, battery_id: UUID):
+    def set_active_battery(db: Session, battery_id: UUID, owner_id: UUID):
         """Mark a specific battery as active and deactivate all others."""
-        target = db.query(Battery).filter(Battery.battery_id == battery_id).first()
+        target = db.query(Battery).filter(
+            Battery.battery_id == battery_id,
+            Battery.owner_id == owner_id,
+        ).first()
         if not target:
             return None
 
-        db.query(Battery).update({Battery.is_active: False}, synchronize_session=False)
+        db.query(Battery).filter(Battery.owner_id == owner_id).update(
+            {Battery.is_active: False},
+            synchronize_session=False,
+        )
         target.is_active = True
         db.commit()
         db.refresh(target)
@@ -40,11 +48,12 @@ class BatteryService:
     def get_battery_by_id(
         db: Session,
         battery_id: UUID,
+        owner_id: UUID,
     ):
 
         return (
             db.query(Battery)
-            .filter(Battery.battery_id == battery_id)
+            .filter(Battery.battery_id == battery_id, Battery.owner_id == owner_id)
             .first()
         )
 
@@ -52,12 +61,13 @@ class BatteryService:
     def delete_battery(
         db: Session,
         battery_id: UUID,
+        owner_id: UUID,
     ):
         """Delete a battery and all monitoring data linked to it."""
 
         battery = (
             db.query(Battery)
-            .filter(Battery.battery_id == battery_id)
+            .filter(Battery.battery_id == battery_id, Battery.owner_id == owner_id)
             .first()
         )
 

@@ -7,7 +7,7 @@ import { getBatteryPercentage } from '../utils/battery.js'
 // Live battery readings from the authenticated backend. The backend reads the
 // latest tenant-scoped telemetry stored in Supabase after ESP32 ingestion.
 export function useBatteryLiveData(maxPoints = 40) {
-  const { demoMode, setConnected, setLastValidReading, pushToast, settings } = useApp()
+  const { demoMode, setConnected, setLastValidReading, pushToast, settings, selectedBattery } = useApp()
   const [series, setSeries] = useState(() => (demoMode ? makeLiveSeries(maxPoints) : []))
   const [live, setLive] = useState(() => (demoMode ? makeLiveReading() : null))
   const [source, setSource] = useState(demoMode ? 'demo' : 'connecting')
@@ -34,6 +34,9 @@ export function useBatteryLiveData(maxPoints = 40) {
       setSeries((s) => [...s.slice(-(maxRef.current - 1)), normalized])
       if (normalized.timestamp) setLastValidReading(normalized.timestamp)
     }
+
+    setLive(demoMode ? makeLiveReading() : null)
+    setSeries(demoMode ? makeLiveSeries(maxRef.current) : [])
 
     if (demoMode) {
       setSource('demo')
@@ -83,7 +86,7 @@ export function useBatteryLiveData(maxPoints = 40) {
       clearInterval(demoTimer)
       clearInterval(pollTimer)
     }
-  }, [demoMode, setConnected, setLastValidReading, pushToast, settings.pollingInterval])
+  }, [demoMode, selectedBattery?.battery_id, setConnected, setLastValidReading, pushToast, settings.pollingInterval])
 
   return { series, live, source }
 }

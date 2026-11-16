@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
+from app.core.security import get_current_user_id
 from app.models.device import Device
 from app.models.telemetry import Telemetry
 from app.services.battery_service import BatteryService
@@ -53,8 +54,8 @@ def _latest_for_battery(db: Session, battery_id):
     )
 
 
-def _payload(db: Session):
-    battery = BatteryService.get_active_battery(db)
+def _payload(db: Session, owner_id):
+    battery = BatteryService.get_active_battery(db, owner_id)
     if battery is None:
         return {
             "connected": False,
@@ -99,13 +100,19 @@ def _payload(db: Session):
 
 
 @router.get("/live")
-def get_live_battery(db: Session = Depends(get_db)):
-    return _payload(db)
+def get_live_battery(
+    db: Session = Depends(get_db),
+    owner_id=Depends(get_current_user_id),
+):
+    return _payload(db, owner_id)
 
 
 @router.get("/status")
-def get_battery_status(db: Session = Depends(get_db)):
-    payload = _payload(db)
+def get_battery_status(
+    db: Session = Depends(get_db),
+    owner_id=Depends(get_current_user_id),
+):
+    payload = _payload(db, owner_id)
     return {
         "connected": payload["connected"],
         "device": payload["device"]["name"] if payload["device"] else None,
@@ -117,8 +124,12 @@ def get_battery_status(db: Session = Depends(get_db)):
 
 
 @router.get("/history")
-def get_battery_history(limit: int = 500, db: Session = Depends(get_db)):
-    battery = BatteryService.get_active_battery(db)
+def get_battery_history(
+    limit: int = 500,
+    db: Session = Depends(get_db),
+    owner_id=Depends(get_current_user_id),
+):
+    battery = BatteryService.get_active_battery(db, owner_id)
     if battery is None:
         return []
 

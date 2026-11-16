@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { navItems } from './Navbar.jsx'
 import ConnectionIndicator from '../common/ConnectionIndicator.jsx'
+import BatterySelector from '../battery/BatterySelector.jsx'
 
 export default function MobileNavigation({ open, onClose, source }) {
   return (
@@ -31,6 +32,9 @@ export default function MobileNavigation({ open, onClose, source }) {
           </ul>
           <div className="mt-3 flex justify-center border-t border-primary/10 pt-3">
             <ConnectionIndicator source={source} />
+          </div>
+          <div className="mt-3 border-t border-primary/10 pt-3">
+            <BatterySelector mobile />
           </div>
         </motion.div>
       )}

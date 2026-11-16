@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
+from app.core.security import get_current_user_id
 from app.models.battery_cycle import BatteryCycle
 from app.models.telemetry import Telemetry
 from app.services.battery_service import BatteryService
@@ -35,8 +36,8 @@ def _group_by_cycle(rows):
     return dict(sorted(groups.items()))
 
 
-def _load_context(db: Session):
-    battery = BatteryService.get_active_battery(db)
+def _load_context(db: Session, owner_id):
+    battery = BatteryService.get_active_battery(db, owner_id)
     if battery is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -160,14 +161,17 @@ def _response(
 
 
 @router.get("/soh")
-def get_soh_prediction(db: Session = Depends(get_db)):
+def get_soh_prediction(
+    db: Session = Depends(get_db),
+    owner_id=Depends(get_current_user_id),
+):
     """Return collected features and the last manually stored prediction.
 
     This endpoint deliberately does not run model inference. Telemetry can be
     collected every second, while SOH inference only happens via POST /soh/predict.
     """
     try:
-        battery, rows, groups, latest_cycle_number, latest_rows, latest_cycle = _load_context(db)
+        battery, rows, groups, latest_cycle_number, latest_rows, latest_cycle = _load_context(db, owner_id)
         snapshot = _feature_status(feature_window(latest_rows, latest_cycle_number))
         metadata = model_metadata()
     except SOHModelUnavailable as exc:
@@ -185,10 +189,13 @@ def get_soh_prediction(db: Session = Depends(get_db)):
 
 
 @router.post("/soh/predict")
-def predict_soh(db: Session = Depends(get_db)):
+def predict_soh(
+    db: Session = Depends(get_db),
+    owner_id=Depends(get_current_user_id),
+):
     """Run one SOH prediction over the current time-spaced feature window."""
     try:
-        battery, rows, groups, latest_cycle_number, latest_rows, latest_cycle = _load_context(db)
+        battery, rows, groups, latest_cycle_number, latest_rows, latest_cycle = _load_context(db, owner_id)
         snapshot = _feature_status(feature_window(latest_rows, latest_cycle_number))
         metadata = model_metadata()
     except SOHModelUnavailable as exc:

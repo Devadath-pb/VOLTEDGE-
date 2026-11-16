@@ -20,8 +20,9 @@ router = APIRouter(
 )
 def get_active_battery(
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(get_current_user_id),
 ):
-    return BatteryService.get_active_battery(db)
+    return BatteryService.get_active_battery(db, owner_id)
 
 
 @router.post(
@@ -31,8 +32,9 @@ def get_active_battery(
 def set_active_battery(
     battery_id: UUID,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(get_current_user_id),
 ):
-    battery = BatteryService.set_active_battery(db, battery_id)
+    battery = BatteryService.set_active_battery(db, battery_id, owner_id)
     if battery is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -47,8 +49,9 @@ def set_active_battery(
 )
 def get_all_batteries(
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(get_current_user_id),
 ):
-    return BatteryService.get_all_batteries(db)
+    return BatteryService.get_all_batteries(db, owner_id)
 
 
 @router.post(
@@ -71,8 +74,9 @@ def create_battery(
 def get_battery_by_id(
     battery_id: UUID,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(get_current_user_id),
 ):
-    battery = BatteryService.get_battery_by_id(db, battery_id)
+    battery = BatteryService.get_battery_by_id(db, battery_id, owner_id)
 
     if battery is None:
         raise HTTPException(
@@ -89,8 +93,9 @@ def get_battery_by_id(
 def delete_battery(
     battery_id: UUID,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(get_current_user_id),
 ):
-    battery = BatteryService.delete_battery(db, battery_id)
+    battery = BatteryService.delete_battery(db, battery_id, owner_id)
 
     if battery is None:
         raise HTTPException(

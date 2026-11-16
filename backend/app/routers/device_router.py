@@ -14,8 +14,8 @@ router = APIRouter(prefix="/device", tags=["Device ingestion"])
 
 @router.get("/battery")
 def device_active_battery(db_and_context=Depends(get_device_db)):
-    db, _ = db_and_context
-    return BatteryService.get_active_battery(db)
+    db, context = db_and_context
+    return BatteryService.get_active_battery(db, context["owner_id"])
 
 
 @router.post("/cycle/start")

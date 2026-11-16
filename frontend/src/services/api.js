@@ -33,6 +33,9 @@ api.interceptors.response.use(
 )
 
 export const endpoints = {
+  batteries: '/batteries/',
+  activeBattery: '/batteries/active',
+  setActiveBattery: (id) => `/batteries/${id}/set-active`,
   live: '/api/battery/live',
   status: '/api/battery/status',
   history: '/api/battery/history',

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Zap, Bell, UserCircle2, Menu, X, ChevronDown } from 'lucide-react'
 import ConnectionIndicator from '../common/ConnectionIndicator.jsx'
 import MobileNavigation from './MobileNavigation.jsx'
+import BatterySelector from '../battery/BatterySelector.jsx'
 import { useApp } from '../../context/AppContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 
@@ -64,6 +65,7 @@ export default function Navbar({ source }) {
         </ul>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden md:block"><BatterySelector /></div>
           <div className="hidden sm:block"><ConnectionIndicator source={source} /></div>
 
           {/* Notifications */}
