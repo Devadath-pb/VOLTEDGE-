@@ -35,6 +35,13 @@
 #define SOC_DEFAULT_CAPACITY_MAH 3600.0f
 #define SOC_MAX_INTEGRATION_GAP_SECONDS 300.0f
 
+// Automatic operating-mode detection from INA219 current direction.
+// Positive normalized current means current is entering the battery (charging).
+// Negative normalized current means current is leaving the battery (discharging).
+// Increase this deadband if the sensor reports small idle-current noise.
+#define CURRENT_DIRECTION_SIGN 1.0f
+#define CURRENT_MODE_DEADBAND_MA 25.0f
+
 // WiFi Credentials (defined in config.cpp)
 extern const char* WIFI_SSID;
 extern const char* WIFI_PASSWORD;

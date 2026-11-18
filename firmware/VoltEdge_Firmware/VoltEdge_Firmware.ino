@@ -164,31 +164,9 @@ void loop()
 
         BatteryData battery = readBattery();
 
-        // Map SystemState to mode string & relay state
-        switch (currentState)
-        {
-        case STATE_CHARGING:
-            battery.mode = "CHARGING";
-            battery.relay = false;
-            break;
-
-        case STATE_DISCHARGING:
-            battery.mode = "DISCHARGING";
-            battery.relay = true;
-            break;
-
-        case STATE_WAITING:
-            battery.mode = "WAITING";
-            battery.relay = false;
-            break;
-
-        case STATE_IDLE:
-        case STATE_BOOT:
-        default:
-            battery.mode = "IDLE";
-            battery.relay = false;
-            break;
-        }
+        // The mode comes from the signed INA219 current measurement. Keep the
+        // relay state as a separate hardware fact; it must not override the
+        // physical charging/discharging direction reported by the sensor.
 
         // Automatic Cutoff Logic during Discharge
         if (currentState == STATE_DISCHARGING)

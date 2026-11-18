@@ -12,6 +12,19 @@ static float runningSoc = NAN;
 static float previousSignedCurrentMa = 0.0f;
 static unsigned long previousSocTimestamp = 0;
 
+String detectBatteryMode(float currentMa)
+{
+    if (!isfinite(currentMa))
+        return "IDLE";
+
+    const float normalizedCurrentMa = currentMa * CURRENT_DIRECTION_SIGN;
+    if (normalizedCurrentMa > CURRENT_MODE_DEADBAND_MA)
+        return "CHARGING";
+    if (normalizedCurrentMa < -CURRENT_MODE_DEADBAND_MA)
+        return "DISCHARGING";
+    return "IDLE";
+}
+
 float estimateStateOfCharge(float voltage)
 {
     if (isnan(voltage))
@@ -32,7 +45,7 @@ float estimateStateOfCharge(float voltage)
 
 static float signedCurrentForMode(float currentMa, const String& mode)
 {
-    const float magnitude = fabs(currentMa);
+    const float magnitude = fabs(currentMa * CURRENT_DIRECTION_SIGN);
     if (mode == "CHARGING")
         return magnitude;
     if (mode == "DISCHARGING")
@@ -126,7 +139,10 @@ BatteryData readBattery()
     data.temperature = readTemperature();
 
     data.relay = isDischarging();
-    data.mode = getMode();
+    // Mode is derived from the measured current direction, not from the relay
+    // or button state. This keeps telemetry truthful when an external charger
+    // or load is connected while the relay is off.
+    data.mode = detectBatteryMode(data.current);
 
     data.timestamp = millis();
 
